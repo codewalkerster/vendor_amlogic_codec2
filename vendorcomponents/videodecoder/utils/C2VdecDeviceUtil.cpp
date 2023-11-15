@@ -1322,7 +1322,12 @@ uint32_t C2VdecComponent::DeviceUtil::getOutAlignedSize(uint32_t size, bool forc
     if (mNoSurface && (mIsYcbRP010Stream && mHwSupportP010)) {
         return (size + OUTPUT_BUFS_ALIGN_SIZE - 1) & (~(OUTPUT_BUFS_ALIGN_SIZE - 1));
     }
-
+    //fixed cl:371156 regression
+    if (intfImpl->getInputCodec() == InputCodec::H264
+        && getDoubleWriteModeValue() == 3
+        && mEnableAvc4kMMU) {
+        return (size + OUTPUT_BUFS_ALIGN_SIZE - 1) & (~(OUTPUT_BUFS_ALIGN_SIZE - 1));
+    }
     return size;
 }
 
