@@ -329,8 +329,8 @@ c2_status_t C2VendorComponentStore::ComponentModule::init(std::string libPath, C
     } else {
         std::string createFactoryName;
         std::string destroyFactoryName;
+        ALOGI("in %s ===> start codec:%d secure:%d isAudio:%d", __func__, codec, secure, isAudio);
         if (isAudio) {
-            ALOGI("in %s ===> start codec:%d", __func__, codec);
             switch (codec) {
 #ifdef SUPPORT_SOFT_AFFMPEG
                 case C2VendorCodec::ADEC_MP2:
@@ -409,6 +409,10 @@ c2_status_t C2VendorComponentStore::ComponentModule::init(std::string libPath, C
               case C2VendorCodec::VDEC_H265:
                   createFactoryName = "CreateC2VdecH265Factory";
                   destroyFactoryName = "DestroyC2VdecH265Factory";
+                  break;
+              case C2VendorCodec::VDEC_H266:
+                  createFactoryName = "CreateC2VdecH266Factory";
+                  destroyFactoryName = "DestroyC2VdecH266Factory";
                   break;
               case C2VendorCodec::VDEC_VP9:
                   createFactoryName = "CreateC2VdecVP9Factory";

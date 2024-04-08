@@ -55,6 +55,7 @@ constexpr char MEDIA_MIMETYPE_VIDEO_AVS[] = "video/avs";
 constexpr char MEDIA_MIMETYPE_VIDEO_AVS2[] = "video/avs2";
 constexpr char MEDIA_MIMETYPE_VIDEO_AVS3[] = "video/avs3";
 constexpr char MEDIA_MIMETYPE_VIDEO_VC1[] = "video/vc1";
+constexpr char MEDIA_MIMETYPE_VIDEO_VVC[] = "video/vvc";
 
 #define DEFINE_C2_DEFAULT_UNSTRICT_SETTER(s, n) \
     C2R C2VdecComponent::IntfImpl::n##Setter(bool mayBlock, C2P<s> &me) {\
@@ -401,6 +402,10 @@ C2VdecComponent::IntfImpl::IntfImpl(C2String name, const std::shared_ptr<C2Refle
         case InputCodec::VC1:
             inputMime = MEDIA_MIMETYPE_VIDEO_VC1;
             onVc1DeclareParam();
+        break;
+        case InputCodec::H266:
+            inputMime = MEDIA_MIMETYPE_VIDEO_VVC;
+            onH266DeclareParam();
         break;
         default:
             CODEC2_LOG(CODEC2_LOG_ERR, "Invalid component name: %s", name.c_str());
@@ -1037,6 +1042,9 @@ void C2VdecComponent::IntfImpl::onAvs3DeclareParam() {
 void C2VdecComponent::IntfImpl::onVc1DeclareParam() {
 }
 
+void C2VdecComponent::IntfImpl::onH266DeclareParam() {
+}
+
 void C2VdecComponent::IntfImpl::onHdrDeclareParam(const std::shared_ptr<C2ReflectorHelper>& helper) {
     mHdrDynamicInfoInput = C2StreamHdrDynamicMetadataInfo::input::AllocShared(0);
     addParameter(
@@ -1347,6 +1355,8 @@ void C2VdecComponent::IntfImpl::onBufferSizeDeclareParam(const char* mine) {
     bool ret = C2VdecCodecConfig::getInstance().getMinMaxResolutionFromXml(vendorCodec, mSecureMode, minSize, maxSize);
     if (!ret) {
         mInitStatus = C2_BAD_VALUE;
+        CODEC2_LOG(CODEC2_LOG_INFO, "[%s:%d] minSize %d %d maxSize %d %d",
+                    __func__, __LINE__, minSize.h, minSize.w, maxSize.h, maxSize.w);
         return;
     }
 

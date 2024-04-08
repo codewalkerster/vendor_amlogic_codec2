@@ -2260,6 +2260,8 @@ int C2VdecComponent::getDefaultMaxBufNum(InputCodec videotype) {
         defaultMaxBuffers = 14;
     } else if (videotype == InputCodec::H265) {
         defaultMaxBuffers = 12;
+    } else if (videotype == InputCodec::H266) {
+        defaultMaxBuffers = 12;
     } else if (videotype == InputCodec::H264) {
         defaultMaxBuffers = 12;
     } else if (videotype == InputCodec::MP2V) {
@@ -3801,6 +3803,8 @@ const char* C2VdecComponent::VideoCodecProfileToMime(media::VideoCodecProfile pr
         return "video/avs";
     } else if (profile == media::VC1_PROFILE) {
         return "video/vc1";
+    } else if (profile == media::H266_PROFILE) {
+        return "video/vvc";
     }
     return "";
 }
@@ -4002,6 +4006,7 @@ CreateC2VdecFactory(DVHE)
 CreateC2VdecFactory(DVAV)
 CreateC2VdecFactory(DVAV1)
 CreateC2VdecFactory(MP2V)
+CreateC2VdecClearFactory(H266)
 CreateC2VdecClearFactory(MP4V)
 CreateC2VdecClearFactory(MJPG)
 CreateC2VdecClearFactory(AVS3)
@@ -4011,6 +4016,7 @@ CreateC2VdecClearFactory(HWVC1)
 
 DestroyC2VdecFactory(H264)
 DestroyC2VdecFactory(H265)
+DestroyC2VdecFactory(H266)
 DestroyC2VdecFactory(VP9)
 DestroyC2VdecFactory(AV1)
 DestroyC2VdecFactory(DVHE)

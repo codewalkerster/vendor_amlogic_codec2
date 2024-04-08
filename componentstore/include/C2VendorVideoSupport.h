@@ -20,6 +20,7 @@ namespace android {
 /*video*/
 const C2String kH264DecoderName = "c2.amlogic.avc.decoder";
 const C2String kH265DecoderName = "c2.amlogic.hevc.decoder";
+const C2String kH266DecoderName = "c2.amlogic.vvc.decoder";
 const C2String kVP9DecoderName  = "c2.amlogic.vp9.decoder";
 const C2String kAV1DecoderName  = "c2.amlogic.av1.decoder";
 const C2String kMP2VDecoderName = "c2.amlogic.mpeg2.decoder";
@@ -81,6 +82,7 @@ static C2ComponentInputCodec gC2ComponentInputCodec [] = {
     {kAVSDecoderName, InputCodec::AVS},
 #endif
     {kHWVC1DecoderName, InputCodec::VC1},
+    {kH266DecoderName, InputCodec::H266},
 };
 
 
@@ -113,6 +115,7 @@ static C2VendorComponent gC2VideoDecoderComponents [] = {
     {kAVSDecoderName, C2VendorCodec::VDEC_AVS},
 #endif
     {kHWVC1DecoderName, C2VendorCodec::VDEC_HW_VC1},
+    {kH266DecoderName, C2VendorCodec::VDEC_H266},
 };
 
 }  // namespace android

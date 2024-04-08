@@ -77,6 +77,7 @@
 //decoder module name
 const char* kH264ModuleName = "ammvdec_h264_v4l";
 const char* kH265ModuleName = "ammvdec_h265_v4l";
+const char* kH266ModuleName = "ammvdec_h266_v4l";
 const char* kVP9ModuleName = "ammvdec_vp9_v4l";
 const char* kAV1ModuleName = "ammvdec_av1_v4l";
 const char* kDVHEModuleName = "ammvdec_h265_v4l";
@@ -157,7 +158,8 @@ static struct {
 #ifdef  SUPPORT_VDEC_AVS
     {C2VendorCodec::VDEC_AVS, kAVSDecoderName, kAVSModuleName},
 #endif
-    {C2VendorCodec::VDEC_HW_VC1, kHWVC1DecoderName, kVC1ModuleName}
+    {C2VendorCodec::VDEC_HW_VC1, kHWVC1DecoderName, kVC1ModuleName},
+    {C2VendorCodec::VDEC_H266, kH266DecoderName, kH266ModuleName},
 };
 
 static struct {
@@ -278,6 +280,8 @@ C2VendorCodec C2VdecCodecConfig::adaptorInputCodecToVendorCodec(InputCodec codec
 #endif
         case InputCodec::VC1:
             return C2VendorCodec::VDEC_HW_VC1;
+        case InputCodec::H266:
+            return C2VendorCodec::VDEC_H266;
         case InputCodec::UNKNOWN:
             return C2VendorCodec::UNKNOWN;
         default:
@@ -542,6 +546,8 @@ bool C2VdecCodecConfig::codecSupportFromMediaCodecXml(C2VendorCodec type, bool s
 }
 
 bool C2VdecCodecConfig::codecSupport(C2VendorCodec type, bool secure, bool fromFeatureList, bool fromMediaCodecXml) {
+    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s type:%d secure:%d from featureList:%d mediaCodecXml:%d",
+        __func__, type, secure, fromFeatureList, fromMediaCodecXml);
     if (fromFeatureList && !fromMediaCodecXml)
         return codecSupportFromFeatureList(type);
     else if (fromMediaCodecXml && !fromFeatureList)
@@ -563,7 +569,7 @@ bool C2VdecCodecConfig::isCodecSupportPictureSize(C2VendorCodec codec_type, bool
     CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "%s name:%s secure:%d size:%d", __func__, name, secure, pictureSize);
     auto attribute = mCodecAttributes.find(name);
     if (attribute == mCodecAttributes.end()) {
-        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"don't found %s.", name);
+        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s check don't found %s.", __func__,name);
         return false;
     }
 
@@ -591,7 +597,7 @@ bool C2VdecCodecConfig::isCodecSupportFrameRate(C2VendorCodec codec_type, bool s
     CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "%s name:%s secure:%d size:%dx%d frameRate:%f", __func__, name, secure, width, height, frameRate);
     auto attribute = mCodecAttributes.find(name);
     if (attribute == mCodecAttributes.end()) {
-        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"don't found %s.", name);
+        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s check don't found %s.", __func__,name);
         return false;
     }
 
@@ -630,7 +636,7 @@ bool C2VdecCodecConfig::isMaxResolutionFromXml(C2VendorCodec codec_type, bool se
     CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "%s name:%s secure:%d size:%dx%d", __func__, name, secure, width, height);
     auto attribute = mCodecAttributes.find(name);
     if (attribute == mCodecAttributes.end()) {
-        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"don't found %s.", name);
+        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s check don't found %s.", __func__,name);
         return false;
     }
 
@@ -657,7 +663,7 @@ bool C2VdecCodecConfig::getMinMaxResolutionFromXml(C2VendorCodec codec_type, boo
 
     auto attribute = mCodecAttributes.find(name);
     if (attribute == mCodecAttributes.end()) {
-        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"don't found %s.", name);
+        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s check don't found %s min:%d %d max:%d %d", __func__, name, min.w, min.h, max.w, max.h);
         return false;
     }
 
@@ -687,7 +693,7 @@ bool C2VdecCodecConfig::isCodecSupport8k(C2VendorCodec codec_type, bool secure) 
     GetCompName(codec_type, secure, name);
     auto attribute = mCodecAttributes.find(name);
     if (attribute == mCodecAttributes.end()) {
-        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"don't found %s.", name);
+        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s don't found %s.", __func__,name);
         return false;
     }
     bool support_8k = property_get_bool(PROPERTY_PLATFORM_SUPPORT_8K, true);

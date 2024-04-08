@@ -256,6 +256,9 @@ int32_t C2VdecComponent::DeviceUtil::getDoubleWriteModeValue() {
         case InputCodec::VC1:
             doubleWriteValue = 0x10;
             break;
+        case InputCodec::H266:
+            doubleWriteValue = 3;
+            break;
         default:
             doubleWriteValue = 3;
             break;
@@ -302,6 +305,7 @@ int32_t C2VdecComponent::DeviceUtil::getTripleWriteModeValue() {
             }
             break;
         case InputCodec::H265:
+        case InputCodec::H266:
         case InputCodec::VP9:
         case InputCodec::AV1:
             if (comp->isNonTunnelMode() && (mUseSurfaceTexture || mNoSurface)) {
@@ -609,6 +613,7 @@ void C2VdecComponent::DeviceUtil::codecConfig(mediahal_cfg_parms* configParam) {
         switch (intfImpl->getInputCodec()) {
             case InputCodec::H264:
             case InputCodec::H265:
+            case InputCodec::H266:
                 {
                     pAmlDecParam->cfg.metadata_config_flag |= VDEC_CFG_FLAG_DV_NEGATIVE;
                 }
@@ -1349,6 +1354,7 @@ bool C2VdecComponent::DeviceUtil::needAllocWithMaxSize() {
     } else {
         switch (intfImpl->getInputCodec()) {
             case InputCodec::MJPG:
+            case InputCodec::H266:
                 needMaxSize = false;
                 break;
             case InputCodec::H264:
