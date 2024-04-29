@@ -39,6 +39,7 @@ public:
     virtual ~TunnelHelper();
 
     c2_status_t setComponent(std::shared_ptr<C2VdecComponent> comp);
+    c2_status_t init();
     c2_status_t start();
     c2_status_t stop();
     c2_status_t flush();
@@ -52,6 +53,8 @@ public:
     c2_status_t fastHandleOutBufferTunnel(uint64_t timestamp, int32_t pictureBufferId);
     void configureEsModeHwAvsyncId(int32_t            avSyncId);
     void videoSyncQueueVideoFrame(int64_t timestampUs, uint32_t size);
+    bool setPlayerInfo(playerInfo* info);
+
 private:
     static int fillVideoFrameCallback2(void* obj, void* args);
     int postFillVideoFrameTunnel2(int dmafd, bool rendered);

@@ -326,7 +326,7 @@ void C2VdecComponent::Init(C2String compName) {
     mFlushDoneWithOutEosWork = false;
     mPreempting = false;
 
-    mPlayerId = 0;
+    mPlayerId = -1;
     mUnstable = 0;
     mInputQueueNum = 0;
     mInputBufferNum = 0;
@@ -348,7 +348,7 @@ void C2VdecComponent::Init(C2String compName) {
     mSyncId = 0;
     mInstanceNum ++;
     mInstanceID ++;
-    mSessionID = -1;
+    mSessionID = mInstanceID;
     mDecoderID = -1;
     mName = compName;
     mStopDoneEvent = nullptr;
@@ -505,8 +505,7 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
         mDeviceUtil->setHDRStaticColorAspects(GetIntfImpl()->getColorAspects());
         // set session id
         mPlayerId = mDeviceUtil->getPlayerId();
-        mSessionID = mInstanceID;
-        if (mPlayerId > 0) {
+        if (mPlayerId >= 0) {
             mSessionID = mPlayerId;
         }
         mVideoDecWraper->setSessionID((uint32_t)mSessionID);
@@ -563,6 +562,12 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
     mDequeueThreadUtil->setComponent(shared_from_this());
 
     if (isTunnelMode() && mTunnelHelper) {
+        playerInfo info = {
+            .instID = mSessionID,
+            .decoderID = mDecoderID
+        };
+        mTunnelHelper->init();
+        mTunnelHelper->setPlayerInfo(&info);
         mTunnelHelper->start();
     }
     if (isTunnerPassthroughMode() && mTunerPassthroughHelper) {

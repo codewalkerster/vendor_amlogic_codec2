@@ -32,6 +32,7 @@ public:
     };
 
 public:
+    static bool loadTunnelRendererLibrary(void);
     VideoTunnelRendererWraper(bool secure = false);
     ~VideoTunnelRendererWraper();
     bool init(int hwsyncid);
@@ -48,6 +49,9 @@ public:
     bool setFrameRate(int32_t framerate);
     void videoSyncQueueVideoFrame(int64_t timestampUs, uint32_t size);
     VideoTunnelRendererBase* getTunnelRenderer() { return mVideoTunnelRenderer;  };
+    AmlMessageBase* VideoTunnelRenderer_getAmlMessage();
+    bool postAndReplyMsg(AmlMessageBase *msg);
+    void setPlayerInfo(playerInfo* info);
 
 private:
     VideoTunnelRendererBase* mVideoTunnelRenderer;

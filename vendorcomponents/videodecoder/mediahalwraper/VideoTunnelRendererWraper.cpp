@@ -34,20 +34,14 @@ namespace android {
 void* gMediaHalVideoTunnelRenderer = NULL;
 
 static VideoTunnelRendererBase* getVideoTunnelRenderer() {
-    if (!gMediaHalVideoTunnelRenderer) {
-        gMediaHalVideoTunnelRenderer = dlopen("libmediahal_tunnelrenderer.so", RTLD_NOW);
-        if (gMediaHalVideoTunnelRenderer == NULL) {
-            CODEC2_LOG(CODEC2_LOG_ERR,"Unable to dlopen libmediahal_videodec: %s", dlerror());
-            return NULL;
-        }
-    }
+    if (!VideoTunnelRendererWraper::loadTunnelRendererLibrary())
+        return NULL;
 
     typedef VideoTunnelRendererBase *(*createVideoTunnelRendererFunc)();
 
     createVideoTunnelRendererFunc getRenderer = NULL;
     getRenderer =
-            (createVideoTunnelRendererFunc)dlsym(gMediaHalVideoTunnelRenderer, "VideoTunnelRenderer_create");
-
+             (createVideoTunnelRendererFunc)dlsym(gMediaHalVideoTunnelRenderer, "VideoTunnelRenderer_create");
 
     if (getRenderer == NULL) {
         dlclose(gMediaHalVideoTunnelRenderer);
@@ -59,6 +53,17 @@ static VideoTunnelRendererBase* getVideoTunnelRenderer() {
     VideoTunnelRendererBase* RendererHandle = (*getRenderer)();
     CODEC2_LOG(CODEC2_LOG_INFO,"getRenderer ok\n");
     return RendererHandle;
+}
+
+bool VideoTunnelRendererWraper::loadTunnelRendererLibrary(void) {
+    if (!gMediaHalVideoTunnelRenderer) {
+        gMediaHalVideoTunnelRenderer = dlopen("libmediahal_tunnelrenderer.so", RTLD_NOW);
+        if (gMediaHalVideoTunnelRenderer == NULL) {
+            CODEC2_LOG(CODEC2_LOG_ERR,"Unable to dlopen libmediahal_tunnelrenderer.so: %s", dlerror());
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -158,6 +163,43 @@ void VideoTunnelRendererWraper::videoSyncQueueVideoFrame(int64_t timestampUs, ui
     if (!mVideoTunnelRenderer)
         return ;
     return mVideoTunnelRenderer->onVideoSyncQueueVideoFrame(timestampUs,size);
+}
+
+AmlMessageBase* VideoTunnelRendererWraper::VideoTunnelRenderer_getAmlMessage() {
+    if (!VideoTunnelRendererWraper::loadTunnelRendererLibrary()) {
+        return NULL;
+    }
+
+    typedef AmlMessageBase* (*fGetAmlMessage)();
+    fGetAmlMessage getAmlMessage = (fGetAmlMessage)dlsym(gMediaHalVideoTunnelRenderer, "VideoTunnelRenderer_getAmlMessage");
+
+    if (getAmlMessage == NULL) {
+        CODEC2_LOG(CODEC2_LOG_ERR,"Can't get VideoTunnelRenderer AmlMessage\n");
+        return NULL;
+    }
+
+    return getAmlMessage();
+}
+
+bool VideoTunnelRendererWraper::postAndReplyMsg(AmlMessageBase *msg) {
+    if (!mVideoTunnelRenderer) {
+        return false;
+    }
+
+    return mVideoTunnelRenderer->postAndReplyMsg(msg);
+}
+
+
+void VideoTunnelRendererWraper::setPlayerInfo(playerInfo* info) {
+    AmlMessageBase* msg = VideoTunnelRenderer_getAmlMessage();
+    if (msg == NULL) {
+        CODEC2_LOG(CODEC2_LOG_ERR, "%s msg == NULL",__func__);
+        return;
+    }
+    msg->setInt32("decoderID", info->decoderID);
+    msg->setInt32("callerinstanceid", info->instID);
+    postAndReplyMsg(msg);
+    delete msg;
 }
 
 }

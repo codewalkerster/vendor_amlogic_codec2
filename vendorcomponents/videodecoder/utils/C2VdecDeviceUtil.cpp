@@ -120,7 +120,7 @@ void C2VdecComponent::DeviceUtil::init(bool secure) {
     mHaveHdr10PlusInStream = false;
 
     mEnableAdaptivePlayback = false;
-    mPlayerId = 0;
+    mPlayerId = -1;
 
     // PTS
     mLastOutPts = 0;

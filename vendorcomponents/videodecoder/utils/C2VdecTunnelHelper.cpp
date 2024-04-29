@@ -82,14 +82,20 @@ c2_status_t C2VdecComponent::TunnelHelper::setComponent(std::shared_ptr<C2VdecCo
     return C2_OK;
 }
 
-
-c2_status_t C2VdecComponent::TunnelHelper::start() {
+c2_status_t C2VdecComponent::TunnelHelper::init() {
     LockWeakPtrWithReturnVal(comp, mComp, C2_BAD_VALUE);
     if (mVideoTunnelRenderer) {
         if (mVideoTunnelRenderer->init(mSyncId) == false) {
            C2VdecTMH_LOG(CODEC2_LOG_ERR, "Tunnel render init failed");
+           return C2_CORRUPTED;
         }
+    }
+    return C2_OK;
+}
 
+c2_status_t C2VdecComponent::TunnelHelper::start() {
+    LockWeakPtrWithReturnVal(comp, mComp, C2_BAD_VALUE);
+    if (mVideoTunnelRenderer) {
         mDeviceUtil = comp->mDeviceUtil;
         mVideoTunnelRenderer->regFillVideoFrameCallBack(fillVideoFrameCallback2, this);
         mVideoTunnelRenderer->regNotifyTunnelRenderTimeCallBack(notifyTunnelRenderTimeCallback, this);
@@ -814,5 +820,13 @@ void C2VdecComponent::TunnelHelper::videoSyncQueueVideoFrame(int64_t timestampUs
 
 }
 
+
+bool C2VdecComponent::TunnelHelper::setPlayerInfo(playerInfo* info) {
+    if (mVideoTunnelRenderer) {
+        mVideoTunnelRenderer->setPlayerInfo(info);
+    }
+
+    return C2_OK;
+}
 
 }
