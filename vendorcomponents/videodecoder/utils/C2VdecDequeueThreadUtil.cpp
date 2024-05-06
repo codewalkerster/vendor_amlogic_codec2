@@ -280,7 +280,7 @@ void C2VdecComponent::DequeueThreadUtil::onAllocBufferTask(media::Size size, uin
             C2VdecDQ_LOG(CODEC2_LOG_TAG_BUFFER, "The allocated block size(%d*%d) does not match the current resolution(%d*%d), so discarded it.", block->width(), block->height(),
                     videoSize.width(), videoSize.height());
 
-            if (!blockPoolUtil->isBufferQueue()) {
+            if (!blockPoolUtil->isUseSurface()) {
                 blockPoolUtil->resetGraphicBlock(block);
                 block.reset();
             }

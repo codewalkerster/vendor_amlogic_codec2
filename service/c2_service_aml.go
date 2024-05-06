@@ -22,10 +22,13 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"github.com/google/blueprint/proptools"
+	"strconv"
 )
 
 func init() {
 	android.RegisterModuleType("c2_service_aml_go_defaults", codec_DefaultsFactory)
+	android.RegisterModuleType("c2_service_aml_aidl_defaults", codec_AidlFactory)
 }
 
 func codec_DefaultsFactory() android.Module {
@@ -169,3 +172,37 @@ func getVersionInfo(ctx android.LoadHookContext) []string {
 
 	return cppflags
 }
+
+
+func codec_AidlFactory() android.Module {
+	module := cc.DefaultsFactory()
+	android.AddLoadHook(module, c2_service_aml_aidl)
+	return module
+}
+
+func c2_service_aml_aidl(ctx android.LoadHookContext) {
+	type props struct {
+		Enabled  *bool
+		Defaults []string
+	}
+	p := &props{}
+	p.Enabled = proptools.BoolPtr(false)
+	sdkVersion := ctx.Config().PlatformSdkVersion().String()
+	sdkVersionInt,err := strconv.Atoi(sdkVersion)
+	if err != nil {
+		fmt.Printf("%v fail to convert", sdkVersionInt)
+	} else {
+			fmt.Println("c2 Defaults sdkVersion:", sdkVersionInt)
+			if sdkVersionInt > 34 {
+				vconfig := ctx.Config().VendorConfig("amlogic_vendorconfig")
+				if vconfig.Bool("enable_codec2_aidl") == true {
+					p.Enabled = proptools.BoolPtr(true)
+					p.Defaults = []string{"libcodec2-aidl-defaults"}
+				}
+			}
+
+	}
+	ctx.AppendProperties(p)
+
+}
+

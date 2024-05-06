@@ -583,7 +583,7 @@ private:
     std::shared_ptr<DebugUtil> mDebugUtil;
     std::shared_ptr<DequeueThreadUtil> mDequeueThreadUtil;
 
-    bool mUseBufferQueue; /*surface use buffer queue */
+    bool mUseSurface; /*surface use buffer queue */
     bool mBufferFirstAllocated;
     bool mPictureSizeChanged;
     c2_resch_stat mResChStat;

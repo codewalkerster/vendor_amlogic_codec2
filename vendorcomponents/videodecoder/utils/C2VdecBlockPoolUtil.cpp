@@ -21,6 +21,7 @@
 #include <C2PlatformSupport.h>
 #include <C2BlockInternal.h>
 #include <C2BufferPriv.h>
+#include <C2AllocatorGralloc.h>
 #include <C2Buffer.h>
 #include <utility>
 #include <C2VendorProperty.h>
@@ -73,8 +74,10 @@ public:
             CODEC2_LOG(CODEC2_LOG_ERR, "[%s] got allocator id failed.", __func__);
             return;
         }
-
         bool useSurface = C2PlatformAllocatorStore::BUFFERQUEUE == id;
+#ifdef USE_IGBA
+        useSurface = useSurface || (id == C2PlatformAllocatorStore::IGBA);
+#endif
         std::shared_ptr<C2AllocatorStore> allocatorStore = GetCodec2PlatformAllocatorStore();
         c2_status_t status = allocatorStore->fetchAllocator(id, &mAllocatorBase);
         propGetInt(CODEC2_VDEC_LOGDEBUG_PROPERTY, &gloglevel);
@@ -135,10 +138,48 @@ public:
     }
 
     uint64_t getConsumerUsage() {
-        uint64_t usage = 0;
-        auto bq = std::static_pointer_cast<C2BufferQueueBlockPool>(mBase);
-        bq->getConsumerUsage(&usage);
+        uint64_t usage = GRALLOC_USAGE_HW_TEXTURE;
+        if (getAllocatorId() == C2PlatformAllocatorStore::BUFFERQUEUE) {
+            auto bq = std::static_pointer_cast<C2BufferQueueBlockPool>(mBase);
+            bq->getConsumerUsage(&usage);
+        }
+#ifdef USE_IGBA
+        if (getAllocatorId() == C2PlatformAllocatorStore::IGBA) {
+            usage = getConsumerUsageFromfetch();
+        }
+#endif
         return usage;
+    }
+
+    uint64_t getConsumerUsageFromfetch() {
+        uint64_t out_u = 0;
+#ifdef USE_IGBA
+        std::shared_ptr<C2GraphicBlock> block;
+        C2Fence fence;
+        C2MemoryUsage usage = {(C2MemoryUsage::CPU_READ | C2MemoryUsage::CPU_WRITE), 0};
+
+        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "getConsumerUsageFromfetch");
+        auto format = HAL_PIXEL_FORMAT_YCRCB_420_SP;
+        /*
+        * Fetch a 1x1 invalid buffer to get block, and then use block handle get usage.
+        */
+        c2_status_t err = fetchGraphicBlock(1, 1, format, usage, &block, &fence);
+       if (err == C2_OK) {
+            uint32_t out_w;
+            uint32_t out_h;
+            uint32_t out_f;
+            uint32_t out_s;
+            bool ret = ExtractMetadataFromCodec2GrallocHandle(block->handle(), &out_w, &out_h, &out_f, &out_u, &out_s);
+            if (ret) {
+                CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "out w %d, h %d, f %d, u %llx, s %d", out_w, out_h, out_f, out_u, out_s);
+            } else {
+                CODEC2_LOG(CODEC2_LOG_ERR, "fail ExtractMetadataFromCodec2GrallocHandle");
+            }
+        } else {
+            CODEC2_LOG(CODEC2_LOG_ERR, "getConsumerUsageFromfetch fetch error");
+        }
+#endif
+        return out_u;
     }
 
     void resetPool(std::shared_ptr<C2BlockPool> blockPool) {
@@ -163,7 +204,10 @@ C2VdecBlockPoolUtil::C2VdecBlockPoolUtil(std::shared_ptr<C2BlockPool> blockPool)
         CODEC2_LOG(CODEC2_LOG_ERR, "[%s] got allocator id failed.", __func__);
         return;
     }
-    mUseSurface = (id == C2PlatformAllocatorStore::BUFFERQUEUE);
+    mUseSurface = C2PlatformAllocatorStore::BUFFERQUEUE == id;
+#ifdef USE_IGBA
+    mUseSurface = mUseSurface || (id == C2PlatformAllocatorStore::IGBA);
+#endif
     CODEC2_LOG(CODEC2_LOG_INFO,"pool id:%" PRId64 " use surface:%d", blockPool->getLocalId(), mUseSurface);
 }
 
@@ -376,7 +420,7 @@ c2_status_t C2VdecBlockPoolUtil::getPoolId(C2BlockPool::local_id_t *poolId) {
     ALOG_ASSERT(mBlockingPool != nullptr);
 
     if (!mBlockingPool) {
-        CODEC2_LOG(CODEC2_LOG_ERR, "C2BufferQueueBlockPool Pool is Invalid, get pool id fail");
+        CODEC2_LOG(CODEC2_LOG_ERR, "Pool is Invalid, get pool id fail");
         return C2_BAD_VALUE;
     }
 
@@ -458,9 +502,8 @@ C2Allocator::id_t C2VdecBlockPoolUtil::getAllocatorId() {
     return mBlockingPool->getAllocatorId();
 }
 
-bool C2VdecBlockPoolUtil::isBufferQueue() {
-    bool ret = C2PlatformAllocatorStore::BUFFERQUEUE == getAllocatorId();
-    return ret;
+bool C2VdecBlockPoolUtil::isUseSurface() {
+    return mUseSurface;
 }
 
 void C2VdecBlockPoolUtil::cancelAllGraphicBlock() {

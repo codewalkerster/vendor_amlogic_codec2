@@ -22,10 +22,12 @@ import (
     "os/exec"
     "fmt"
     "strings"
+    "strconv"
 )
 
 func init() {
     android.RegisterModuleType("c2_component_aml_go_defaults",codec_DefaultsFactory)
+    android.RegisterModuleType("c2_component_aml_aidl_defaults", codec_AidlFactory)
 }
 
 func codec_DefaultsFactory() (android.Module) {
@@ -169,4 +171,32 @@ func getVersionInfo(ctx android.LoadHookContext) ([]string) {
     cppflags = append(cppflags, HAVE_VERSOIN_INFO)
 
     return cppflags
+}
+
+func codec_AidlFactory() android.Module {
+    module := cc.DefaultsFactory()
+    android.AddLoadHook(module, c2_component_aml_aidl)
+    return module
+}
+
+func c2_component_aml_aidl(ctx android.LoadHookContext) {
+    type propsE struct {
+            Cflags      []string
+    }
+    p := &propsE{}
+    //After Android T, libavservices name changed
+    //minijail is used to protect against unexpected system calls.
+    sdkVersion := ctx.Config().PlatformSdkVersion().String()
+    sdkVersionInt,err := strconv.Atoi(sdkVersion)
+
+    if err != nil {
+            fmt.Printf("%v fail to convert", sdkVersionInt)
+    } else {
+            fmt.Println("c2 Defaults sdkVersion:", sdkVersionInt)
+            if sdkVersionInt > 34 {
+                fmt.Println("add USE_IGBA")
+                p.Cflags = append(p.Cflags, "-DUSE_IGBA")
+            }
+    }
+    ctx.AppendProperties(p)
 }

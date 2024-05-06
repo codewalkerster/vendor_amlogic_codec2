@@ -1398,6 +1398,10 @@ void C2VdecComponent::IntfImpl::onBufferPoolDeclareParam() {
 
     C2Allocator::id_t surfaceAllocator = C2PlatformAllocatorStore::BUFFERQUEUE;
 
+#ifdef USE_IGBA
+    surfaceAllocator = C2PlatformAllocatorStore::IGBA;
+#endif
+
     addParameter(
         DefineParam(mInputAllocatorIds, C2_PARAMKEY_INPUT_ALLOCATORS)
         .withConstValue(C2PortAllocatorsTuning::input::AllocShared(inputAllocators))

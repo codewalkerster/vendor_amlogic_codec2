@@ -310,7 +310,7 @@ void C2VdecComponent::Init(C2String compName) {
     mTunerPassthroughHelper = NULL;
 
     mReportEosWork = false;
-    mUseBufferQueue = false;
+    mUseSurface = false;
     mHasQueuedWork = false;
     mIsReportEosWork = false;
     mPendingOutputEOS = false;
@@ -519,7 +519,7 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
             InputCodec codec = mIntfImpl->getInputCodec();
             supportedProfiles = VideoDecWraper::AmVideoDec_getSupportedProfiles((uint32_t)codec);
             if (supportedProfiles.empty()) {
-                C2Vdec_LOG(CODEC2_LOG_ERR, "No supported profile from input codec: %d", mIntfImpl->getInputCodec());
+                C2Vdec_LOG(CODEC2_LOG_ERR, "No supported profile from input codec: %d", static_cast<int>(mIntfImpl->getInputCodec()));
                 return;
             }
             mCodecProfile = supportedProfiles[0].profile;
@@ -1308,7 +1308,7 @@ c2_status_t C2VdecComponent::sendOutputBufferToWorkIfAny(bool dropIfUnavailable)
             // Attach output buffer to the work corresponded to bitstreamId.
 
             updateWorkParam(work, info);
-            if (!mUseBufferQueue) {
+            if (!mUseSurface) {
                 info->mGraphicBlock.reset();
             }
         }
@@ -1440,7 +1440,7 @@ void C2VdecComponent::onDrain(uint32_t drainMode) {
                 mTunerPassthroughHelper->flush();
             }
         } else {
-            C2Vdec_LOG(CODEC2_LOG_DEBUG_LEVEL2, "Neglect drain. Component in state: %d", mComponentState);
+            C2Vdec_LOG(CODEC2_LOG_DEBUG_LEVEL2, "Neglect drain. Component in state:  %d", static_cast<int>(mComponentState));
         }
     } else {
         // Do nothing.
@@ -1641,7 +1641,7 @@ void C2VdecComponent::onFlushDone() {
             if (mTunnelHelper) {
                 mTunnelHelper->storeAbandonedFrame(work->input.ordinal.timestamp.peekull());
             }
-            if (!mUseBufferQueue && mFlushPendingWorkList.empty() && mIsReportEosWork && isNonTunnelMode()) {
+            if (!mUseSurface && mFlushPendingWorkList.empty() && mIsReportEosWork && isNonTunnelMode()) {
                 for (auto & info : mGraphicBlocks) {
                     if (info.mState == GraphicBlockInfo::State::OWNED_BY_COMPONENT) {
                         C2ConstGraphicBlock constBlock = info.mGraphicBlock->share(
@@ -1984,7 +1984,7 @@ void C2VdecComponent::updateOutputDelayBufCount() {
         //default add one buf for output delay count
         dequeueBufferNum = 1;
     }
-    if (!mUseBufferQueue) {
+    if (!mUseSurface) {
         dequeueBufferNum = mOutputFormat.mMinNumBuffers;
     }
 
@@ -2115,7 +2115,7 @@ c2_status_t C2VdecComponent::videoResolutionChange() {
     auto reallocate = mDeviceUtil->isReallocateOutputBuffer(mLastOutputFormat, mOutputFormat, &bufferSizeChanged, &bufferNumIncreased);
     C2Vdec_LOG(CODEC2_LOG_DEBUG_LEVEL2, "output buffer reallocate:%d size change:%d number increase:%d", reallocate, bufferSizeChanged, bufferNumIncreased);
 
-    if (mBlockPoolUtil->isBufferQueue()) {
+    if (mBlockPoolUtil->isUseSurface()) {
         if (bufferSizeChanged) {
             for (auto& info : mGraphicBlocks) {
                 info.mFdHaveSet = false;
@@ -2308,8 +2308,8 @@ c2_status_t C2VdecComponent::reallocateBuffersForUsageChanged(const media::Size&
         mBlockPoolUtil = std::make_shared<C2VdecBlockPoolUtil> (blockPool);
     }
 
-    if (mBlockPoolUtil->isBufferQueue()) {
-        mUseBufferQueue = true;
+    if (mBlockPoolUtil->isUseSurface()) {
+        mUseSurface = true;
         CODEC2_LOG(CODEC2_LOG_INFO, "Using C2BlockPool ID:%" PRId64" for allocating output buffers, blockpooolId:%d", poolId, mBlockPoolUtil->getAllocatorId());
     } else {
         C2Vdec_LOG(CODEC2_LOG_ERR, "Graphic block allocator is invalid");
@@ -2369,7 +2369,6 @@ c2_status_t C2VdecComponent::reallocateBuffersForUsageChanged(const media::Size&
                 return err;
             }
         }
-
         uint32_t blockId;
         C2BlockPool::local_id_t poolId;
         mBlockPoolUtil->getPoolId(&poolId);
@@ -2423,8 +2422,8 @@ void C2VdecComponent::resetBlockPoolUtil() {
         }
     }
     DCHECK(blockPool != NULL);
-    mUseBufferQueue = blockPool->getAllocatorId() == C2PlatformAllocatorStore::BUFFERQUEUE;
     mBlockPoolUtil = std::make_shared<C2VdecBlockPoolUtil> (blockPool);
+    mUseSurface = mBlockPoolUtil->isUseSurface();
     C2Vdec_LOG(CODEC2_LOG_DEBUG_LEVEL2, "Reset block pool util success.");
 }
 
@@ -2455,7 +2454,7 @@ c2_status_t C2VdecComponent::allocNonTunnelBuffers(const media::Size& size, uint
             (C2MemoryUsage::CPU_READ | C2MemoryUsage::CPU_WRITE), platformUsage};
     // The number of buffers requested for the first time is the number defined in the framework.
     int32_t dequeue_buffer_num = 2 + kDefaultSmoothnessFactor;
-    if (!mUseBufferQueue) {
+    if (!mUseSurface) {
         dequeue_buffer_num = bufferCount;
     }
     //fixed android.mediav2.cts.CodecDecoderSurfaceTest#testFlushNative[28(c2.amlogic.mpeg2.decoder_video/mpeg2)]
@@ -2464,7 +2463,7 @@ c2_status_t C2VdecComponent::allocNonTunnelBuffers(const media::Size& size, uint
     //out buf release is slow at surface mode,
     //we cannot get out buf so fast.
     if (mDeviceUtil->isInterlaced() &&
-        !(mIntfImpl->getInputCodec() == InputCodec::MP2V && mBlockPoolUtil->isBufferQueue())) {
+        !(mIntfImpl->getInputCodec() == InputCodec::MP2V && mBlockPoolUtil->isUseSurface())) {
         if (mOutBufferCount > kDefaultSmoothnessFactor)
             dequeue_buffer_num = mOutBufferCount - kDefaultSmoothnessFactor;
     }
@@ -2494,7 +2493,7 @@ c2_status_t C2VdecComponent::allocNonTunnelBuffers(const media::Size& size, uint
     }
     mCanQueueOutBuffer = true;
 
-    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "Minimum undequeued buffer count:%zu buffer count:%d first_bufferNum:%d Usage %" PRId64"",
+    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "Minimum undequeued buffer count:%zu buffer count:%d first_bufferNum:%d Usage %" PRIx64"",
                 minBuffersForDisplay, (int)bufferCount, dequeue_buffer_num, usage.expected);
     for (int i = 0; i < dequeue_buffer_num; ++i) {
         std::shared_ptr<C2GraphicBlock> block;
@@ -2511,7 +2510,7 @@ c2_status_t C2VdecComponent::allocNonTunnelBuffers(const media::Size& size, uint
                                             format, usage, &block, &fence);
             if (err == C2_TIMED_OUT && retries_left > 0) {
                 C2Vdec_LOG(CODEC2_LOG_DEBUG_LEVEL2, "Allocate buffer timeout, %d retry time(s) left...", retries_left);
-                if (retries_left == kAllocateBufferMaxRetries && mUseBufferQueue) {
+                if (retries_left == kAllocateBufferMaxRetries && mUseSurface) {
                     int64_t newSurfaceUsage = mBlockPoolUtil->getConsumerUsage();
                     if (newSurfaceUsage != surfaceUsage) {
                         return reallocateBuffersForUsageChanged(size, format);
@@ -2618,8 +2617,8 @@ c2_status_t C2VdecComponent::allocateBuffersFromBlockPool(const media::Size& siz
 
     int64_t surfaceUsage = 0;
     bool usersurfacetexture = false;
-    if (mBlockPoolUtil->isBufferQueue()) {
-        mUseBufferQueue = true;
+    if (mBlockPoolUtil->isUseSurface()) {
+        mUseSurface = true;
         surfaceUsage = mBlockPoolUtil->getConsumerUsage();
         CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "Get block pool usage:%" PRId64 "", surfaceUsage);
         if (!(surfaceUsage & GRALLOC_USAGE_HW_COMPOSER)) {
@@ -2702,7 +2701,7 @@ void C2VdecComponent::sendOutputBufferToAccelerator(GraphicBlockInfo* info, bool
         uint32_t size = 0;
         bool isNV21 = true;
         int metaFd =-1;
-      if (mBlockPoolUtil->getAllocatorId() == C2PlatformAllocatorStore::BUFFERQUEUE) {
+      if (mUseSurface) {
             const native_handle_t* c2Handle = info->mGraphicBlock->handle();
             const native_handle_t* handle = UnwrapNativeCodec2GrallocHandle(c2Handle);
             if (handle != nullptr)
@@ -2880,10 +2879,10 @@ void C2VdecComponent::onCheckVideoDecReconfig() {
             }
         }
         DCHECK(blockPool != NULL);
-        mUseBufferQueue = blockPool->getAllocatorId() == C2PlatformAllocatorStore::BUFFERQUEUE;
         mBlockPoolUtil = std::make_shared<C2VdecBlockPoolUtil> (blockPool);
-        if (mBlockPoolUtil->isBufferQueue()) {
-            C2Vdec_LOG(CODEC2_LOG_INFO, "Bufferqueue-backed block pool is used. blockPool->getAllocatorId() %d, C2PlatformAllocatorStore::BUFFERQUEUE %d",
+        if (mBlockPoolUtil->isUseSurface()) {
+            mUseSurface = true;
+            C2Vdec_LOG(CODEC2_LOG_INFO, "Bufferqueue-backed block pool is used. blockPool->getAllocatorId() %d, C2PlatformAllocatorStore::BUFFERQUEUE %d ",
                 blockPool->getAllocatorId(), C2PlatformAllocatorStore::BUFFERQUEUE);
         } else {
             C2Vdec_LOG(CODEC2_LOG_INFO, "Bufferpool-backed block pool is used.");
@@ -2895,7 +2894,7 @@ void C2VdecComponent::onCheckVideoDecReconfig() {
         InputCodec codec = mIntfImpl->getInputCodec();
         supportedProfiles = VideoDecWraper::AmVideoDec_getSupportedProfiles((uint32_t)codec);
         if (supportedProfiles.empty()) {
-            C2Vdec_LOG(CODEC2_LOG_ERR, "No supported profile from input codec: %d", mIntfImpl->getInputCodec());
+            C2Vdec_LOG(CODEC2_LOG_ERR, "No supported profile from input codec: %d", static_cast<int>(mIntfImpl->getInputCodec()));
             return;
         }
         mCodecProfile = supportedProfiles[0].profile;
@@ -2904,7 +2903,7 @@ void C2VdecComponent::onCheckVideoDecReconfig() {
             VideoCodecProfileToMime(mCodecProfile));
     }
 
-    if (mBlockPoolUtil->isBufferQueue()) {
+    if (mBlockPoolUtil->isUseSurface()) {
         bool usersurfacetexture = false;
         uint64_t usage = 0;
         usage = mBlockPoolUtil->getConsumerUsage();
@@ -3663,7 +3662,7 @@ c2_status_t C2VdecComponent::reportEOSWork() {
     eosWork->workletsProcessed = static_cast<uint32_t>(eosWork->worklets.size());
     eosWork->worklets.front()->output.flags = C2FrameData::FLAG_END_OF_STREAM;
 
-    if (!mUseBufferQueue) {
+    if (!mUseSurface) {
         mIsReportEosWork = true;
     }
 
@@ -3702,7 +3701,7 @@ void C2VdecComponent::reportAbandonedWorks() {
         if (mTunnelHelper) {
             mTunnelHelper->storeAbandonedFrame(work->input.ordinal.timestamp.peekull());
         }
-        if (!mUseBufferQueue && abandonedWorks.empty() && mIsReportEosWork && isNonTunnelMode()) {
+        if (!mUseSurface && abandonedWorks.empty() && mIsReportEosWork && isNonTunnelMode()) {
             for (auto & info : mGraphicBlocks) {
                 if (info.mState == GraphicBlockInfo::State::OWNED_BY_COMPONENT) {
                     C2ConstGraphicBlock constBlock = info.mGraphicBlock->share(

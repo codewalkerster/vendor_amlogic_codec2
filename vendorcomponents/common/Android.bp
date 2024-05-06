@@ -29,6 +29,10 @@ c2_component_aml_go_defaults {
     name: "c2_component_aml_go_defaults",
 }
 
+c2_component_aml_aidl_defaults {
+    name: "c2_component_aml_aidl_defaults",
+}
+
 cc_library_shared {
     name: "libvendor_c2common",
     defaults: [

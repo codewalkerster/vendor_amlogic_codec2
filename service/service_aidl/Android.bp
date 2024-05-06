@@ -1,0 +1,106 @@
+/*
+ * Copyright (C) 2023 Amlogic, Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// *** THIS PACKAGE HAS SPECIAL LICENSING CONDITIONS.  PLEASE
+//     CONSULT THE OWNERS AND opensource-licensing@google.com BEFORE
+//     DEPENDING ON IT IN YOUR PROJECT. ***
+package {
+    //   legacy_proprietary
+    default_applicable_licenses: ["vendor_amlogic_common_license"],
+}
+
+cc_binary {
+    name: "android.hardware.media.c2-service",
+    vendor: true,
+    relative_install_path: "hw",
+    vintf_fragments : ["android.hardware.media.c2-service.xml"],
+
+    init_rc: ["android.hardware.media.c2-service.rc"],
+
+    defaults: [
+        "c2_service_aml_aidl_defaults",
+        "hidl_defaults",
+        "libcodec2-hidl-defaults",
+        "c2_service_aml_go_defaults"
+    ],
+    header_libs:[
+        "libcodec2_headers",
+        "libvendor_c2componentstore_headers"
+    ],
+    srcs: [
+        "service.cpp",
+    ],
+
+    // minijail is used to protect against unexpected system calls.
+    shared_libs: [
+        "libbinder",
+        "libvendor_c2componentstore",
+    ],
+    required: [
+        "android.hardware.amlogic.media.c2-seccomp-policy",
+        "android.hardware.amlogic.media.c2-extended-seccomp-policy",
+    ],
+    //Only enabled when using Asan for debugging or self-testing
+    // cflags: [
+    //     "-g",
+    //     "-Werror",
+    //     "-Wall",
+    //     "-Wno-unused-parameter",
+    //     "-fno-omit-frame-pointer",
+    // ],
+
+    // sanitize: {
+    //     address: true,
+    //     misc_undefined: [
+    //         "unsigned-integer-overflow",
+    //         "signed-integer-overflow",
+    //     ],
+    // },
+
+}
+
+// seccomp policy file.
+//
+// This should be modified to suit the target device and architecture.
+//
+// Files in the "seccomp_policy" subdirectory are only provided as examples.
+// They may not work on some devices and/or architectures without modification.
+prebuilt_etc {
+    name: "android.hardware.amlogic.media.c2-seccomp-policy",
+    vendor: true,
+    sub_dir: "seccomp_policy",
+
+  // If a specific architecture is targeted, multiple choices are not needed.
+    arch: {
+        arm: {
+           src: "seccomp_policy/android.hardware.amlogic.media.c2-arm.policy",
+        },
+        arm64: {
+            src: "seccomp_policy/android.hardware.amlogic.media.c2-arm64.policy",
+        },
+    },
+}
+
+prebuilt_etc {
+    name: "android.hardware.amlogic.media.c2-extended-seccomp-policy",
+    vendor: true,
+    sub_dir: "seccomp_policy",
+
+    src: "seccomp_policy/android.hardware.amlogic.media.c2-extended.policy",
+
+}
+
+

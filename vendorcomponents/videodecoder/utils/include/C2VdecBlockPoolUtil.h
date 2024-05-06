@@ -119,7 +119,7 @@ public:
     /**
      * @brief Is buffer queue pool.
      */
-    bool isBufferQueue();
+    bool isUseSurface();
 
     /**
      * @brief clear all graphic block.
