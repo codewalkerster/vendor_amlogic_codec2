@@ -101,4 +101,8 @@
 /* vdec property set */
 #define C2_PROPERTY_COMMON_LOWLATENCY_MODE          "vendor.media.llp"
 
+/* For lowpower disable video*/
+#define C2_PROPERTY_COMMON_LOWPOWER                 "vendor.media.video.lowpower"
+
+
 #endif

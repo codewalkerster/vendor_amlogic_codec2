@@ -3077,6 +3077,12 @@ c2_status_t C2VdecComponent::start() {
         return C2_BAD_STATE;  // start() is only supported when component is in LOADED state.
     }
 
+    //Check usb low power to disable video
+    if (property_get_bool(C2_PROPERTY_COMMON_LOWPOWER, false)) {
+        C2Vdec_LOG(CODEC2_LOG_ERR, "usb low power need disable video");
+        return C2_CORRUPTED;
+    }
+
     mCodecProfile = mIntfImpl->getCodecProfile();
     C2Vdec_LOG(CODEC2_LOG_DEBUG_LEVEL2, "Get parameter: mCodecProfile = %d", static_cast<int>(mCodecProfile));
 
