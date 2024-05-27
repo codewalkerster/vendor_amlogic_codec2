@@ -44,6 +44,7 @@
 #define OUTPUT_BUFS_ALIGN_SIZE_32 (32)
 #define OUTPUT_BUFS_ALIGN_SIZE_64 (64)
 #define min(a, b) (((a) > (b))? (b):(a))
+#define IS_MMU_DW(dw) (dw != 0x10)
 
 namespace android {
 
@@ -258,6 +259,14 @@ int32_t C2VdecComponent::DeviceUtil::getDoubleWriteModeValue() {
     }
 
     if (shouldEnableMMU()) {
+        if (mConfigParam != NULL) {
+            struct aml_dec_params *pAmlDecParam = &mConfigParam->aml_dec_cfg;
+            //if we had config to decoder,dw can not change when resolution Changed,
+            //so we need used old dw value.
+            if (pAmlDecParam->cfg.double_write_mode > 0) {
+                return pAmlDecParam->cfg.double_write_mode;
+            }
+        }
         doubleWriteValue = 3;
         CODEC2_LOG(CODEC2_LOG_INFO, "H264 4k mmu :DoubleWrite %d", doubleWriteValue);
         return doubleWriteValue;
