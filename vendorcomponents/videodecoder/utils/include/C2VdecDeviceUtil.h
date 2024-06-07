@@ -129,6 +129,7 @@ public:
     uint64_t getLastOutputPts();
     void setLastOutputPts(uint64_t);
     bool setUnstable();
+    bool setAviDiscard();
     bool setDuration();
     bool shouldEnableMMU();
     bool clearDecoderDuration();
@@ -212,6 +213,7 @@ private:
     float    mFramerate;
     bool     mCredibleDuration;
     int32_t  mUnstablePts;
+    int32_t  mIsAviDiscard;
     int32_t  mPlayerId;
     uint64_t mLastOutPts;
     uint64_t mOutputWorkCount;

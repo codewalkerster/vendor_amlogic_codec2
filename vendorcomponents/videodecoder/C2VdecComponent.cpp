@@ -548,6 +548,7 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
         //set some decoder config
         //set unstable state and duration to vdec
         mDeviceUtil->setUnstable();
+        mDeviceUtil->setAviDiscard();
         mDeviceUtil->setDuration();
         mDecoderID = mVideoDecWraper->getDecoderID();
         TraceInit();
@@ -1677,6 +1678,7 @@ void C2VdecComponent::onFlushDone() {
         if (mDeviceUtil != nullptr) {
             mDeviceUtil->flush();
             mDeviceUtil->setUnstable();
+            mDeviceUtil->setAviDiscard();
             mDeviceUtil->setDuration();
         }
         mSentOutBitStreamIdList.clear();
@@ -2931,6 +2933,7 @@ void C2VdecComponent::onCheckVideoDecReconfig() {
             //set some decoder config
             //set unstable state and duration to vdec
             mDeviceUtil->setUnstable();
+            mDeviceUtil->setAviDiscard();
             mDeviceUtil->setDuration();
             mDecoderID = mVideoDecWraper->getDecoderID();
             TraceInit();
@@ -2961,6 +2964,7 @@ void C2VdecComponent::onCheckVideoDecReconfig() {
         //set some decoder config
         //set unstable state and duration to vdec
         mDeviceUtil->setUnstable();
+        mDeviceUtil->setAviDiscard();
         mDeviceUtil->setDuration();
         mDecoderID = mVideoDecWraper->getDecoderID();
         TraceInit();

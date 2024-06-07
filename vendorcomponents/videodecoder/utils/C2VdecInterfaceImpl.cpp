@@ -180,6 +180,11 @@ C2R C2VdecComponent::IntfImpl::StreamPtsUnstableSetter(bool mayBlock, C2P<C2Stre
     (void)me;  // TODO: validate
     return C2R::Ok();
 }
+C2R C2VdecComponent::IntfImpl::StreamIsAviDiscardSetter(bool mayBlock, C2P<C2StreamIsAviDiscard::input> &me) {
+    (void)mayBlock;
+    (void)me;  // TODO: validate
+    return C2R::Ok();
+}
 
 //define some unstrict Setter
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerHalParam::input, VendorTunerHalParam)
@@ -414,6 +419,9 @@ C2VdecComponent::IntfImpl::IntfImpl(C2String name, const std::shared_ptr<C2Refle
 
     //unstable pts
     onUnstablePtsDeclareParam();
+
+    //avi discard
+    onIsAviDiscardDeclareParam();
 
     //out delay
     onOutputDelayDeclareParam();
@@ -1172,6 +1180,15 @@ void C2VdecComponent::IntfImpl::onUnstablePtsDeclareParam() {
             .withDefault(new C2StreamUnstablePts::input(0))
             .withFields({C2F(mUnstablePts,enable).any()})
     .withSetter(StreamPtsUnstableSetter)
+    .build());
+}
+
+void C2VdecComponent::IntfImpl::onIsAviDiscardDeclareParam() {
+    addParameter(
+        DefineParam(mIsAviDiscard,C2_PARAMKEY_IS_AVI_DISCARD)
+            .withDefault(new C2StreamIsAviDiscard::input(0))
+            .withFields({C2F(mIsAviDiscard,enable).any()})
+    .withSetter(StreamIsAviDiscardSetter)
     .build());
 }
 

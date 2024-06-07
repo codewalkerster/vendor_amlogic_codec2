@@ -75,6 +75,7 @@ private:
     static C2R TunnelHandleSetter(bool mayBlock, C2P<C2PortTunnelHandleTuning::output> &me);
     static C2R TunnelSystemTimeSetter(bool mayBlock, C2P<C2PortTunnelSystemTime::output> &me);
     static C2R StreamPtsUnstableSetter(bool mayBlock, C2P<C2StreamUnstablePts::input> &me);
+    static C2R StreamIsAviDiscardSetter(bool mayBlock, C2P<C2StreamIsAviDiscard::input> &me);
 
     //declare some unstrict Setter
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerHalParam::input, VendorTunerHalParam);
@@ -147,6 +148,8 @@ private:
     std::shared_ptr<C2VendorVideoBitrate::input> mVideoBitrate;
     //unstable pts
     std::shared_ptr<C2StreamUnstablePts::input> mUnstablePts;
+    //avi discard
+    std::shared_ptr<C2StreamIsAviDiscard::input> mIsAviDiscard;
     //player id
     std::shared_ptr<C2VendorPlayerId::input> mPlayerId;
     //stream mode
@@ -220,6 +223,7 @@ private:
     void onApiFeatureDeclareParam();
     void onFrameRateDeclareParam();
     void onUnstablePtsDeclareParam();
+    void onIsAviDiscardDeclareParam();
     void onOutputDelayDeclareParam();
     void onInputDelayDeclareParam();
     void onTunnelDeclareParam();

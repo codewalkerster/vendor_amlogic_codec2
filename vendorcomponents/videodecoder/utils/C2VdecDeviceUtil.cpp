@@ -127,6 +127,7 @@ void C2VdecComponent::DeviceUtil::init(bool secure) {
     mDurationUs = 0;
     mFramerate = 0.0f;
     mUnstablePts = 0;
+    mIsAviDiscard = 0;
     mCredibleDuration = 0;
     mMarginBufferNum = 0;
 
@@ -446,6 +447,14 @@ void C2VdecComponent::DeviceUtil::codecConfig(mediahal_cfg_parms* configParam) {
         mUnstablePts = unstablePts.enable;
     }
 
+    C2StreamIsAviDiscard::input isAviDiscard = {0};
+    err = intfImpl->query({&isAviDiscard}, {}, C2_MAY_BLOCK, nullptr);
+    if (err != C2_OK) {
+        C2VdecMDU_LOG(CODEC2_LOG_ERR, "[%s:%d] Query C2StreamIsAviDiscard message error", __func__, __LINE__);
+    } else {
+        mIsAviDiscard = isAviDiscard.enable;
+    }
+
     if (inputFrameRateInfo.value != 0) {
         mDurationUs = 1000 * 1000 / inputFrameRateInfo.value;
         mCredibleDuration = true;
@@ -453,7 +462,7 @@ void C2VdecComponent::DeviceUtil::codecConfig(mediahal_cfg_parms* configParam) {
     }
 
     mDurationUsFromApp = mDurationUs;
-    C2VdecMDU_LOG(CODEC2_LOG_INFO, "[%s:%d] query frame rate:%f updata mDurationUs = %d, unstablePts :%d",__func__, __LINE__, inputFrameRateInfo.value, mDurationUs, mUnstablePts);
+    C2VdecMDU_LOG(CODEC2_LOG_INFO, "[%s:%d] query frame rate:%f updata mDurationUs = %d, unstablePts :%d isAviDiscard :%d",__func__, __LINE__, inputFrameRateInfo.value, mDurationUs, mUnstablePts, mIsAviDiscard);
     C2GlobalLowLatencyModeTuning lowLatency = {0};
     err = intfImpl->query({&lowLatency}, {}, C2_MAY_BLOCK, nullptr);
     if (err != C2_OK) {
@@ -636,6 +645,24 @@ bool C2VdecComponent::DeviceUtil::setUnstable()
     AmlMessageBase *msg = VideoDecWraper::AmVideoDec_getAmlMessage();
     if (msg != NULL) {
         msg->setInt32("unstable", mUnstablePts);
+        wraper->postAndReplyMsg(msg);
+        ret = true;
+    }
+    if (msg != NULL)
+        delete msg;
+    return ret;
+}
+
+bool C2VdecComponent::DeviceUtil::setAviDiscard()
+{
+    LockWeakPtrWithReturnVal(comp, mComp, false);
+    mVideoDecWraper = comp->getCompVideoDecWraper();
+    LockWeakPtrWithReturnVal(wraper, mVideoDecWraper, false);
+    bool ret = false;
+    C2VdecMDU_LOG(CODEC2_LOG_INFO,"into set mIsAviDiscard = %d ", mIsAviDiscard);
+    AmlMessageBase *msg = VideoDecWraper::AmVideoDec_getAmlMessage();
+    if (msg != NULL) {
+        msg->setInt32("avidiscard", mIsAviDiscard);
         wraper->postAndReplyMsg(msg);
         ret = true;
     }

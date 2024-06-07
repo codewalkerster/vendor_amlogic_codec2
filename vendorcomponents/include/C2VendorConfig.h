@@ -24,6 +24,7 @@
 
 enum C2AmlParamIndexKind : C2Param::type_index_t {
     kParamIndexStreamPtsUnstable = C2Param::TYPE_INDEX_VENDOR_START,
+    kParamIndexStreamIsAviDiscard,
     kParamIndexVendorPlayerId,
     kParamIndexVendorVideoBitrate,
     kParamIndexVendorTunerHal,
@@ -67,9 +68,21 @@ struct C2StreamPtsUnstableStruct {
     C2FIELD(enable, "enable")
 };
 
+struct C2StreamIsAviDiscardStruct {
+    inline C2StreamIsAviDiscardStruct() = default;
+    inline C2StreamIsAviDiscardStruct(int32_t val1)
+        : enable(val1){}
+    int32_t enable;
+    DEFINE_AND_DESCRIBE_C2STRUCT(StreamIsAviDiscard)
+    C2FIELD(enable, "enable")
+};
+
 /* ================================ video decoder Config Parameter ================================ */
 typedef C2StreamParam<C2Setting, C2StreamPtsUnstableStruct, kParamIndexStreamPtsUnstable> C2StreamUnstablePts;
 constexpr char C2_PARAMKEY_UNSTABLE_PTS[] = "unstable-pts";//"vendor.unstable-pts.enable"
+
+typedef C2StreamParam<C2Setting, C2StreamIsAviDiscardStruct, kParamIndexStreamIsAviDiscard> C2StreamIsAviDiscard;
+constexpr char C2_PARAMKEY_IS_AVI_DISCARD[] = "is-avi-discard";//"vendor.is-avi-discard.enable"
 
 typedef C2PortParam<C2Setting, C2Int32Value, kParamIndexVendorPlayerId> C2VendorPlayerId;
 constexpr char C2_PARAMKEY_PLAYER_ID[] = "player-id";//"vendor.player-id.value"
