@@ -1435,12 +1435,12 @@ void C2VdecComponent::DeviceUtil::releaseGrallocSlot() {
 bool C2VdecComponent::DeviceUtil::getMaxBufWidthAndHeight(uint32_t& width, uint32_t& height) {
     LockWeakPtrWithReturnVal(comp, mComp, false);
     LockWeakPtrWithReturnVal(intfImpl, mIntfImpl, false);
-    bool support_4k = C2VdecCodecConfig::getInstance().isCodecSupport4k(intfImpl->getVendorCodec(), mSecure);
+    bool support_4k = C2VdecCodecConfig::getInstance().isXMLSupport4k(intfImpl->getVendorCodec(), mSecure);
     uint32_t maxWidth = 0;
     uint32_t maxHeight = 0;
     do {
         if (support_4k) {
-            if (mStreamIs8k || mCodecSupport8k) {
+            if (mStreamIs8k || C2VdecCodecConfig::getInstance().isXMLSupport8k(intfImpl->getVendorCodec(), mSecure)) {
                 maxWidth = kMaxWidth8k;
                 maxHeight = kMaxHeight8k;
                 break;

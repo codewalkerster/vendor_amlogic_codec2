@@ -542,7 +542,7 @@ bool C2VdecCodecConfig::codecSupportFromMediaCodecXml(C2VendorCodec type, bool s
                 sscanf(attributemap->second.c_str(), "%dx%d", &attributeItem.blockSize.w, &attributeItem.blockSize.h);
             } else if (strstr(attributemap->first.c_str(), "size") != NULL) {
                 sscanf(attributemap->second.c_str(),"%dx%d-%dx%d",&attributeItem.minSize.w, &attributeItem.minSize.h, &attributeItem.maxSize.w, &attributeItem.maxSize.h);
-                if ((attributeItem.maxSize.w*attributeItem.maxSize.h >= 7680*4320) && property_get_bool(PROPERTY_PLATFORM_SUPPORT_8K, true)) {
+                if (attributeItem.maxSize.w*attributeItem.maxSize.h >= 7680*4320) {
                     attributeItem.isSupport8k = true;
                 }
             } else if (strstr(attributemap->first.c_str(), "blocks-per-second-range") != NULL) {
@@ -708,8 +708,7 @@ bool C2VdecCodecConfig::getMinMaxResolutionFromXml(C2VendorCodec codec_type, boo
     max = codecAttributes.maxSize;
     return true;
 }
-
-bool C2VdecCodecConfig::isCodecSupport4k(C2VendorCodec codec_type, bool secure) {
+bool C2VdecCodecConfig::isXMLSupport4k(C2VendorCodec codec_type, bool secure) {
     const char* name = nullptr;
     GetCompName(codec_type, secure, name);
     auto attribute = mCodecAttributes.find(name);
@@ -717,13 +716,19 @@ bool C2VdecCodecConfig::isCodecSupport4k(C2VendorCodec codec_type, bool secure) 
         CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"don't found %s.", name);
         return false;
     }
+    return isCodecSupportPictureSize(codec_type, secure, 3840 * 2160);
+}
+
+bool C2VdecCodecConfig::isCodecSupport4k(C2VendorCodec codec_type, bool secure) {
+    const char* name = nullptr;
+    GetCompName(codec_type, secure, name);
     bool support_4k = property_get_bool(PROPERTY_PLATFORM_SUPPORT_4K, true);
-    support_4k |= isCodecSupportPictureSize(codec_type, secure, 3840 * 2160);
+    support_4k = support_4k || isXMLSupport4k(codec_type, secure);
     CODEC2_LOG(CODEC2_LOG_ERR,"%s can%s support 4K", name, support_4k ? "" : " not");
     return support_4k;
 }
 
-bool C2VdecCodecConfig::isCodecSupport8k(C2VendorCodec codec_type, bool secure) {
+bool C2VdecCodecConfig::isXMLSupport8k(C2VendorCodec codec_type, bool secure) {
     const char* name = nullptr;
     GetCompName(codec_type, secure, name);
     auto attribute = mCodecAttributes.find(name);
@@ -731,10 +736,16 @@ bool C2VdecCodecConfig::isCodecSupport8k(C2VendorCodec codec_type, bool secure) 
         CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s don't found %s.", __func__,name);
         return false;
     }
-    bool support_8k = property_get_bool(PROPERTY_PLATFORM_SUPPORT_8K, true);
-    support_8k |= isCodecSupportPictureSize(codec_type, secure, 7680 * 4320);
-    support_8k |= attribute->second.isSupport8k;
-    CODEC2_LOG(CODEC2_LOG_ERR,"%s can%s support 8K", name, support_8k ? "" : " not");
+    return attribute->second.isSupport8k;
+
+}
+bool C2VdecCodecConfig::isCodecSupport8k(C2VendorCodec codec_type, bool secure) {
+    const char* name = nullptr;
+    GetCompName(codec_type, secure, name);
+    bool support_8k = property_get_bool(PROPERTY_PLATFORM_SUPPORT_8K, false);
+    support_8k = support_8k || isCodecSupportPictureSize(codec_type, secure, 7680 * 4320);
+    support_8k = support_8k || isXMLSupport8k(codec_type, secure);
+    CODEC2_LOG(CODEC2_LOG_ERR,"can%s support 8K", support_8k ? "" : " not");
     return support_8k;
 }
 bool C2VdecCodecConfig::isDisplaySupport8k() {
@@ -743,7 +754,6 @@ bool C2VdecCodecConfig::isDisplaySupport8k() {
 
 c2_status_t C2VdecCodecConfig::isCodecSupportResolutionRatio(InputCodec codec, bool secure, int32_t pictureSize) {
     bool support_4k = property_get_bool(PROPERTY_PLATFORM_SUPPORT_4K, true);
-    bool support_8k = property_get_bool(PROPERTY_PLATFORM_SUPPORT_8K, true);
 
     c2_status_t ret = C2_OK;
     if ((pictureSize > (1920 * 1088)) && !support_4k &&
@@ -753,7 +763,7 @@ c2_status_t C2VdecCodecConfig::isCodecSupportResolutionRatio(InputCodec codec, b
     }
     C2VendorCodec vendorCodec = adaptorInputCodecToVendorCodec(codec);
     if ((pictureSize > (4096 * 2304)) &&
-        (!isCodecSupport8k(vendorCodec, secure) && !support_8k) &&
+        !isCodecSupport8k(vendorCodec, secure) &&
             !isCodecSupportPictureSize(adaptorInputCodecToVendorCodec(codec), secure, pictureSize)) {
         CODEC2_LOG(CODEC2_LOG_ERR,"%s:%d not support 8K for non-8K platform, config failed, please check", __func__, __LINE__);
         ret = C2_BAD_VALUE;

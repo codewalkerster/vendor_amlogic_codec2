@@ -73,6 +73,8 @@ public:
     bool isCodecSupport4k(C2VendorCodec codec_type, bool secure);
     // Checks whether the specified codec supports 8k on the current platform
     bool isCodecSupport8k(C2VendorCodec codec_type, bool secure);
+    bool isXMLSupport8k(C2VendorCodec codec_type, bool secure);
+    bool isXMLSupport4k(C2VendorCodec codec_type, bool secure);
     bool isDisplaySupport8k();
     c2_status_t isCodecSupportResolutionRatio(InputCodec codec, bool secure, int32_t bufferSize);
     enum ValType {
