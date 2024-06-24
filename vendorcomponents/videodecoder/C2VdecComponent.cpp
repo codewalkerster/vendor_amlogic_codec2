@@ -3126,7 +3126,7 @@ c2_status_t C2VdecComponent::start() {
     mTaskRunner->PostDelayedTask(FROM_HERE,
         ::base::Bind(&C2VdecComponent::checkPreempting, ::base::Unretained(this)),
         ::base::TimeDelta::FromMilliseconds(100));
-    if (mIntfImpl->mVendorGameModeLatency->enable && mDeviceUtil) {
+    if ((mIntfImpl->mVendorGameModeLatency->enable || mIntfImpl->mLowLatencyMode->value) && mDeviceUtil) {
         mDeviceUtil->setGameMode(true);
     }
     mVdecComponentStopDone = false;
@@ -3148,7 +3148,7 @@ c2_status_t C2VdecComponent::stop() {
     if (!(state == State::RUNNING || state == State::ERROR)) {
         return C2_OK;  // Component is already in stopped state.
     }
-    if (mIntfImpl->mVendorGameModeLatency->enable && mDeviceUtil) {
+    if ((mIntfImpl->mVendorGameModeLatency->enable || mIntfImpl->mLowLatencyMode->value) && mDeviceUtil) {
         mDeviceUtil->setGameMode(false);
     }
 
