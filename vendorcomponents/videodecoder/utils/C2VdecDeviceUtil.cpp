@@ -128,7 +128,6 @@ void C2VdecComponent::DeviceUtil::init(bool secure) {
     mFramerate = 0.0f;
     mUnstablePts = 0;
     mIsAviDiscard = 0;
-    mCredibleDuration = 0;
     mMarginBufferNum = 0;
 
     // gralloc
@@ -438,6 +437,7 @@ void C2VdecComponent::DeviceUtil::codecConfig(mediahal_cfg_parms* configParam) {
     }
 
     C2StreamFrameRateInfo::input inputFrameRateInfo = {0};
+    inputFrameRateInfo.value = -1.0f;
     err = intfImpl->query({&inputFrameRateInfo}, {}, C2_MAY_BLOCK, nullptr);
     if (err != C2_OK) {
         C2VdecMDU_LOG(CODEC2_LOG_ERR, "[%s:%d] Query C2StreamFrameRateInfo message error", __func__, __LINE__);
@@ -459,10 +459,13 @@ void C2VdecComponent::DeviceUtil::codecConfig(mediahal_cfg_parms* configParam) {
         mIsAviDiscard = isAviDiscard.enable;
     }
 
-    if (inputFrameRateInfo.value != 0) {
+
+    if (inputFrameRateInfo.value > 0) {
         mDurationUs = 1000 * 1000 / inputFrameRateInfo.value;
-        mCredibleDuration = true;
         mFramerate = inputFrameRateInfo.value;
+    } else {
+        mDurationUs = 0;
+        mFramerate = 0.0f;
     }
 
     mDurationUsFromApp = mDurationUs;
@@ -704,9 +707,9 @@ bool C2VdecComponent::DeviceUtil::setDuration()
     bool ret = false;
     //tunnel mode,open afr
     int afr = comp->isTunnelMode();
-    C2VdecMDU_LOG(CODEC2_LOG_INFO, "into set mDurationUs = %d afr:%d", mDurationUs, afr);
+    C2VdecMDU_LOG(CODEC2_LOG_INFO, "into set mDurationUs = %d afr:%d mFramerate:%f", mDurationUs, afr, mFramerate);
     AmlMessageBase *msg = VideoDecWraper::AmVideoDec_getAmlMessage();
-    if (msg != NULL && mDurationUs != 0) {
+    if (msg != NULL) {
         msg->setInt32("duration", mDurationUs);
         msg->setFloat("framerate", mFramerate);
         msg->setInt32("afr", afr);
@@ -1037,8 +1040,6 @@ int C2VdecComponent::DeviceUtil::checkHDRMetadataAndColorAspects(struct aml_vdec
 
         }
     }
-
-
 
     //notify OMX Client port settings changed if needed
     if (isHdrChanged) {
