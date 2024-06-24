@@ -26,6 +26,8 @@
 #include <C2VendorProperty.h>
 #include <C2VendorVideoSupport.h>
 #include <AmVideoDecBase.h>
+#include <C2VendorSoftVideoSupport.h>
+#include <C2VendorAudioSupport.h>
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -160,6 +162,30 @@ static struct {
 #endif
     {C2VendorCodec::VDEC_HW_VC1, kHWVC1DecoderName, kVC1ModuleName},
     {C2VendorCodec::VDEC_H266, kH266DecoderName, kH266ModuleName},
+//video softdec
+    {C2VendorCodec::VDEC_VP6A, kVP6ADecoderName, NULL},
+    {C2VendorCodec::VDEC_VP6F, kVP6FDecoderName, NULL},
+    {C2VendorCodec::VDEC_VP8, kVP8DecoderName, NULL},
+    {C2VendorCodec::VDEC_H263, kH263DecoderName, NULL},
+    {C2VendorCodec::VDEC_RM10, kRM10DecoderName, NULL},
+    {C2VendorCodec::VDEC_RM20, kRM20DecoderName, NULL},
+    {C2VendorCodec::VDEC_RM30, kRM30DecoderName, NULL},
+    {C2VendorCodec::VDEC_RM40, kRM40DecoderName, NULL},
+    {C2VendorCodec::VDEC_WMV1, kWMV1DecoderName, NULL},
+    {C2VendorCodec::VDEC_WMV2, kWMV2DecoderName, NULL},
+    {C2VendorCodec::VDEC_WMV3, kWMV3DecoderName, NULL},
+    {C2VendorCodec::VDEC_VC1, kVC1DecoderName, NULL},
+//audio decoder
+    {C2VendorCodec::ADEC_MP2, kMP2DecoderName, NULL},
+    {C2VendorCodec::ADEC_AAC, kAACDecoderName, NULL},
+    {C2VendorCodec::ADEC_AC3, kAC3DecoderName, NULL},
+    {C2VendorCodec::ADEC_EAC3, kEC3DecoderName, NULL},
+    {C2VendorCodec::ADEC_FFMPEG, kFFMPEGDecoderName, NULL},
+    {C2VendorCodec::ADEC_DTS, kDTSDecoderName, NULL},
+    {C2VendorCodec::ADEC_DTSHD, kDTSHDDecoderName, NULL},
+    {C2VendorCodec::ADEC_DTSE, kDTSEDecoderName, NULL},
+    {C2VendorCodec::ADEC_DTSUHD, kDTSUHDDecoderName, NULL},
+    {C2VendorCodec::ADEC_AC4, kAC4DecoderName, NULL},
 };
 
 static struct {

@@ -674,9 +674,13 @@ C2VendorComponentStore::C2VendorComponentStore()
 #ifdef SUPPORT_SOFT_VDEC
     if (supportC2SoftVdec) {
         for (int i = 0; i < sizeof(gC2SoftVideoDecoderComponents) / sizeof(C2VendorComponent); i++) {
-            mComponents.emplace(std::piecewise_construct, std::forward_as_tuple(gC2SoftVideoDecoderComponents[i].compname),
-                    std::forward_as_tuple(kComponentLoadSoftVideoDecoderLibrary, gC2SoftVideoDecoderComponents[i].codec));
-            ALOGI("C2VendorComponentStore i:%d, compName:%s and id:%d\n", i, gC2SoftVideoDecoderComponents[i].compname.c_str(), gC2SoftVideoDecoderComponents[i].codec);
+            if (!C2VdecCodecConfig::getInstance().codecSupport(gC2SoftVideoDecoderComponents[i].codec, false, false, supportMediaCodecxml)) {
+                ALOGW("%s not support for decoder not support or codec customize", gC2SoftVideoDecoderComponents[i].compname.c_str());
+            } else {
+                mComponents.emplace(std::piecewise_construct, std::forward_as_tuple(gC2SoftVideoDecoderComponents[i].compname),
+                        std::forward_as_tuple(kComponentLoadSoftVideoDecoderLibrary, gC2SoftVideoDecoderComponents[i].codec));
+                ALOGI("C2VendorComponentStore i:%d, compName:%s and id:%d\n", i, gC2SoftVideoDecoderComponents[i].compname.c_str(), gC2SoftVideoDecoderComponents[i].codec);
+            }
         }
     }
 #endif
@@ -690,18 +694,22 @@ C2VendorComponentStore::C2VendorComponentStore()
     if (supportC2Adec) {
         for (int i = 0; i < sizeof(gC2AudioDecoderComponents) / sizeof(C2VendorComponent); i++) {
             const char *pAc4 = strstr(gC2AudioDecoderComponents[i].compname.c_str(), (const char *)".ac4");
-            if (pAc4) {
-                RETURN_STATUS ms12_file_status = C2VendorCheckFileMS12Status();
-                ALOGI("C2VendorComponentStore i:%d, compName:%s and id:%d, ms12 so is %s\n",
-                    i, gC2AudioDecoderComponents[i].compname.c_str(), gC2AudioDecoderComponents[i].codec, !ms12_file_status?"ok":"not ok");
-                if (ms12_file_status == RET_OK)
-                    mComponents.emplace(std::piecewise_construct, std::forward_as_tuple(gC2AudioDecoderComponents[i].compname),
-                        std::forward_as_tuple(kComponentLoadAudioDecoderLibrary, gC2AudioDecoderComponents[i].codec, true));
+            if (!C2VdecCodecConfig::getInstance().codecSupport(gC2AudioDecoderComponents[i].codec, false, false, supportMediaCodecxml)) {
+                ALOGW("%s not support for decoder not support or codec customize", gC2AudioDecoderComponents[i].compname.c_str());
             } else {
-                ALOGI("C2VendorComponentStore i:%d, compName:%s and id:%d\n", i, gC2AudioDecoderComponents[i].compname.c_str(), gC2AudioDecoderComponents[i].codec);
-                mComponents.emplace(std::piecewise_construct, std::forward_as_tuple(gC2AudioDecoderComponents[i].compname),
-                        std::forward_as_tuple(kComponentLoadAudioDecoderLibrary, gC2AudioDecoderComponents[i].codec, true));
-            }
+                if (pAc4) {
+                    RETURN_STATUS ms12_file_status = C2VendorCheckFileMS12Status();
+                    ALOGI("C2VendorComponentStore i:%d, compName:%s and id:%d, ms12 so is %s\n",
+                        i, gC2AudioDecoderComponents[i].compname.c_str(), gC2AudioDecoderComponents[i].codec, !ms12_file_status?"ok":"not ok");
+                    if (ms12_file_status == RET_OK)
+                        mComponents.emplace(std::piecewise_construct, std::forward_as_tuple(gC2AudioDecoderComponents[i].compname),
+                            std::forward_as_tuple(kComponentLoadAudioDecoderLibrary, gC2AudioDecoderComponents[i].codec, true));
+                } else {
+                    ALOGI("C2VendorComponentStore i:%d, compName:%s and id:%d\n", i, gC2AudioDecoderComponents[i].compname.c_str(), gC2AudioDecoderComponents[i].codec);
+                    mComponents.emplace(std::piecewise_construct, std::forward_as_tuple(gC2AudioDecoderComponents[i].compname),
+                            std::forward_as_tuple(kComponentLoadAudioDecoderLibrary, gC2AudioDecoderComponents[i].codec, true));
+                }
+           }
         }
     }
     mDfltDebugger = &DefaultDebugger::getInstance();
