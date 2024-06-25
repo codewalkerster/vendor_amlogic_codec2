@@ -3022,11 +3022,13 @@ c2_status_t C2VdecComponent::flush_sm(flush_mode_t mode,
                                                 ::base::Unretained(this)));
 
     AutoMutex l(mFlushDoneLock);
-    if (mFlushDoneCond.waitRelative(mFlushDoneLock, 500000000ll) == ETIMEDOUT) {  // 500ms Time out
-        updateComponentState(ComponentState::STARTED);
-        uint64_t nowTimeMs = systemTime(SYSTEM_TIME_MONOTONIC) / 1000000;
-        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "[%s] last flush time:%" PRId64", now time:%" PRId64"", __func__, mLastFlushTimeMs, nowTimeMs);
-        return C2_TIMED_OUT;
+    if (mComponentState != ComponentState::STARTED) {
+        if (mFlushDoneCond.waitRelative(mFlushDoneLock, 500000000ll) == ETIMEDOUT) {  // 500ms Time out
+            updateComponentState(ComponentState::STARTED);
+            uint64_t nowTimeMs = systemTime(SYSTEM_TIME_MONOTONIC) / 1000000;
+            CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "[%s] last flush time:%" PRId64", now time:%" PRId64"", __func__, mLastFlushTimeMs, nowTimeMs);
+            return C2_TIMED_OUT;
+        }
     }
 
     {
