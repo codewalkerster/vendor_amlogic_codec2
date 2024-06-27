@@ -197,6 +197,8 @@ int32_t C2VdecComponent::DeviceUtil::getDoubleWriteModeValue() {
                     CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "[%s-%d] 540p_buffer enabled, set avc double write %d", __func__, __LINE__, doubleWriteValue);
                 } else if ((fixedBufferSlice == 1080) && !mSecure) {  // fix 1080p buffer.
                     doubleWriteValue = 0x200;
+                } else if (!mSecure) {
+                    doubleWriteValue = 0x10;
                 } else {
                     doubleWriteValue = 3;
                 }
