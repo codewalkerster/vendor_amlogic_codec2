@@ -303,11 +303,14 @@ c2_status_t C2VencComponent::start() {
 
 c2_status_t C2VencComponent::stop_process() {
     C2Venc_LOG(CODEC2_VENC_LOG_INFO,"C2VencComponent stop!");
-    if (mComponentState == ComponentState::UNINITIALIZED) {
-        C2Venc_LOG(CODEC2_VENC_LOG_ERR,"this component has already stopped");
-        return C2_NO_INIT;
+    {
+        AutoMutex l(mStateLock);
+        if (mComponentState == ComponentState::UNINITIALIZED) {
+            C2Venc_LOG(CODEC2_VENC_LOG_ERR,"this component has already stopped");
+            return C2_NO_INIT;
+        }
+        mComponentState = ComponentState::STOPPING;
     }
-    mComponentState = ComponentState::STOPPING;
     {
         AutoMutex l(mInputQueueLock);
         mQueue.clear();
@@ -336,8 +339,11 @@ c2_status_t C2VencComponent::stop_process() {
         mfdDumpOutput = -1;
         C2Venc_LOG(CODEC2_VENC_LOG_INFO,"Dump raw File finish!");
     }
-    mComponentState = ComponentState::UNINITIALIZED;
-    C2Venc_LOG(CODEC2_VENC_LOG_INFO,"stop done,set state to UNINITIALIZED");
+    {
+        AutoMutex l(mStateLock);
+        mComponentState = ComponentState::UNINITIALIZED;
+        C2Venc_LOG(CODEC2_VENC_LOG_INFO,"stop done,set state to UNINITIALIZED");
+    }
     return C2_OK;
 }
 

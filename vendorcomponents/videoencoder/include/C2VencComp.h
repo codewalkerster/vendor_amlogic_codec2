@@ -137,6 +137,7 @@ private:
     C2VencCreateInstance CreateMethod;
     C2VencDestroyInstance DestroyMethod;
     Mutex mDestroyQueueLock;
+    Mutex mStateLock;
 };
 
 }

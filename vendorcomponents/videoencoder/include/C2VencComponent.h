@@ -211,6 +211,7 @@ private:
     bool mDumpEsEnable;
     Mutex mProcessDoneLock;
     Condition mProcessDoneCond;
+    Mutex mStateLock;
 };
 
 }
