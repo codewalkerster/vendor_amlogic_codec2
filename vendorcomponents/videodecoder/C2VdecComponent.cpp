@@ -3025,7 +3025,7 @@ c2_status_t C2VdecComponent::flush_sm(flush_mode_t mode,
     /*
     * Describe the reason for the coverity ignore.
     */
-    /* coverity[Indefinite wait] */
+    /* coverity[dead_wait] */
     if (mFlushDoneCond.waitRelative(mFlushDoneLock, 500000000ll) == ETIMEDOUT) {  // 500ms Time out
         updateComponentState(ComponentState::STARTED);
         uint64_t nowTimeMs = systemTime(SYSTEM_TIME_MONOTONIC) / 1000000;
