@@ -47,6 +47,7 @@ const C2String kDVAV1DecoderName = "c2.amlogic.dolby-vision.dav1.decoder";
 const C2String kDVHESecureDecoderName = "c2.amlogic.dolby-vision.dvhe.decoder.secure";
 const C2String kDVAVSecureDecoderName = "c2.amlogic.dolby-vision.dvav.decoder.secure";
 const C2String kDVAV1SecureDecoderName = "c2.amlogic.dolby-vision.dav1.decoder.secure";
+const C2String kH266SecureDecoderName = "c2.amlogic.vvc.decoder.secure";
 
 struct C2ComponentInputCodec {
     C2String compname;
@@ -83,6 +84,7 @@ static C2ComponentInputCodec gC2ComponentInputCodec [] = {
 #endif
     {kHWVC1DecoderName, InputCodec::VC1},
     {kH266DecoderName, InputCodec::H266},
+    {kH266SecureDecoderName, InputCodec::H266},
 };
 
 
@@ -116,6 +118,7 @@ static C2VendorComponent gC2VideoDecoderComponents [] = {
 #endif
     {kHWVC1DecoderName, C2VendorCodec::VDEC_HW_VC1},
     {kH266DecoderName, C2VendorCodec::VDEC_H266},
+    {kH266SecureDecoderName, C2VendorCodec::VDEC_H266},
 };
 
 }  // namespace android

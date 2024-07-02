@@ -175,6 +175,7 @@ static struct {
     {C2VendorCodec::VDEC_DVAV, kDVAVSecureDecoderName, kH264ModuleName},
     {C2VendorCodec::VDEC_DVAV1, kDVAV1SecureDecoderName, kDVAV1ModuleName},
     {C2VendorCodec::VDEC_MP2V, kMP2VSecureDecoderName, kMP2ModuleName},
+    {C2VendorCodec::VDEC_H266, kH266SecureDecoderName, kH266ModuleName},
 };
 
 ANDROID_SINGLETON_STATIC_INSTANCE(C2VdecCodecConfig)

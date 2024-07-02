@@ -4000,13 +4000,14 @@ private:
 
 CreateC2VdecFactory(H264)
 CreateC2VdecFactory(H265)
+CreateC2VdecFactory(H266)
 CreateC2VdecFactory(VP9)
 CreateC2VdecFactory(AV1)
 CreateC2VdecFactory(DVHE)
 CreateC2VdecFactory(DVAV)
 CreateC2VdecFactory(DVAV1)
 CreateC2VdecFactory(MP2V)
-CreateC2VdecClearFactory(H266)
+
 CreateC2VdecClearFactory(MP4V)
 CreateC2VdecClearFactory(MJPG)
 CreateC2VdecClearFactory(AVS3)
