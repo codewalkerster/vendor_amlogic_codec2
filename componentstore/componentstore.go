@@ -47,6 +47,11 @@ func componentstoreDefaults(ctx android.LoadHookContext) {
         cppflags = append(cppflags, "-DSUPPORT_VDEC_AVS=1 -DSUPPORT_VDEC_AVS2=1 -DSUPPORT_VDEC_AVS3=1")
     }
 
+    // config vvc
+    if vconfig.Bool("enable_vendor_media_vvc_support") == true {
+        cppflags = append(cppflags, "-DVENDOR_MEDIA_VVC_SUPPORT=1")
+    }
+
     p.Cflags = cppflags
     ctx.AppendProperties(p)
 }

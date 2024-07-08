@@ -161,7 +161,9 @@ static struct {
     {C2VendorCodec::VDEC_AVS, kAVSDecoderName, kAVSModuleName},
 #endif
     {C2VendorCodec::VDEC_HW_VC1, kHWVC1DecoderName, kVC1ModuleName},
+#ifdef VENDOR_MEDIA_VVC_SUPPORT
     {C2VendorCodec::VDEC_H266, kH266DecoderName, kH266ModuleName},
+#endif
 //video softdec
 #ifdef SUPPORT_SOFT_VDEC
     {C2VendorCodec::VDEC_VP6A, kVP6ADecoderName, NULL},
@@ -203,7 +205,9 @@ static struct {
     {C2VendorCodec::VDEC_DVAV, kDVAVSecureDecoderName, kH264ModuleName},
     {C2VendorCodec::VDEC_DVAV1, kDVAV1SecureDecoderName, kDVAV1ModuleName},
     {C2VendorCodec::VDEC_MP2V, kMP2VSecureDecoderName, kMP2ModuleName},
+#ifdef VENDOR_MEDIA_VVC_SUPPORT
     {C2VendorCodec::VDEC_H266, kH266SecureDecoderName, kH266ModuleName},
+#endif
 };
 
 ANDROID_SINGLETON_STATIC_INSTANCE(C2VdecCodecConfig)
@@ -309,8 +313,10 @@ C2VendorCodec C2VdecCodecConfig::adaptorInputCodecToVendorCodec(InputCodec codec
 #endif
         case InputCodec::VC1:
             return C2VendorCodec::VDEC_HW_VC1;
+#ifdef VENDOR_MEDIA_VVC_SUPPORT
         case InputCodec::H266:
             return C2VendorCodec::VDEC_H266;
+#endif
         case InputCodec::UNKNOWN:
             return C2VendorCodec::UNKNOWN;
         default:

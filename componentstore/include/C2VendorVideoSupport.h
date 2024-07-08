@@ -83,8 +83,10 @@ static C2ComponentInputCodec gC2ComponentInputCodec [] = {
     {kAVSDecoderName, InputCodec::AVS},
 #endif
     {kHWVC1DecoderName, InputCodec::VC1},
+#ifdef VENDOR_MEDIA_VVC_SUPPORT
     {kH266DecoderName, InputCodec::H266},
     {kH266SecureDecoderName, InputCodec::H266},
+#endif
 };
 
 
@@ -117,8 +119,10 @@ static C2VendorComponent gC2VideoDecoderComponents [] = {
     {kAVSDecoderName, C2VendorCodec::VDEC_AVS},
 #endif
     {kHWVC1DecoderName, C2VendorCodec::VDEC_HW_VC1},
+#if VENDOR_MEDIA_VVC_SUPPORT
     {kH266DecoderName, C2VendorCodec::VDEC_H266},
     {kH266SecureDecoderName, C2VendorCodec::VDEC_H266},
+#endif
 };
 
 }  // namespace android

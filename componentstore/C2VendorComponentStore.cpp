@@ -410,10 +410,12 @@ c2_status_t C2VendorComponentStore::ComponentModule::init(std::string libPath, C
                   createFactoryName = "CreateC2VdecH265Factory";
                   destroyFactoryName = "DestroyC2VdecH265Factory";
                   break;
+#if VENDOR_MEDIA_VVC_SUPPORT
               case C2VendorCodec::VDEC_H266:
                   createFactoryName = "CreateC2VdecH266Factory";
                   destroyFactoryName = "DestroyC2VdecH266Factory";
                   break;
+#endif
               case C2VendorCodec::VDEC_VP9:
                   createFactoryName = "CreateC2VdecVP9Factory";
                   destroyFactoryName = "DestroyC2VdecVP9Factory";
