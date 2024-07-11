@@ -57,6 +57,7 @@
 #include <VideoDecWraper.h>
 #include <VideoTunnelRendererWraper.h>
 #include <TunerPassthroughWrapper.h>
+#include <MediaMetricsWraper.h>
 #include <C2VendorConfig.h>
 #include <C2VdecBlockPoolUtil.h>
 #include <C2VendorVideoSupport.h>
@@ -582,6 +583,7 @@ private:
     std::shared_ptr<TunerPassthroughHelper> mTunerPassthroughHelper;
     std::shared_ptr<DebugUtil> mDebugUtil;
     std::shared_ptr<DequeueThreadUtil> mDequeueThreadUtil;
+    std::shared_ptr<MediaMetricsWraper> mMetricsWraper;
 
     bool mUseSurface; /*surface use buffer queue */
     bool mBufferFirstAllocated;
@@ -602,6 +604,8 @@ private:
     int32_t mSyncId;
     int64_t mSyncType;
     bool mTunnelUnderflow;
+    bool mTunnelReportUseMP;
+    bool mEnableMediaMetrics;
 
     C2ReadView mDefaultDummyReadView;
     std::shared_ptr<C2GraphicBlock> mPendingGraphicBlockBuffer;

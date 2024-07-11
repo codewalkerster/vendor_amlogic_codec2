@@ -37,6 +37,7 @@ cc_library_shared {
         "mediahalwraper/VideoDecWraper.cpp",
         "mediahalwraper/VideoTunnelRendererWraper.cpp",
         "mediahalwraper/TunerPassthroughWrapper.cpp",
+        "mediahalwraper/MediaMetricsWraper.cpp",
         "utils/C2VdecInterfaceImpl.cpp",
         "utils/C2VdecDeviceUtil.cpp",
         "utils/C2VdecBlockPoolUtil.cpp",

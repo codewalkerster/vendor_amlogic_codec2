@@ -284,6 +284,10 @@ C2VdecComponent::C2VdecComponent(C2String name, c2_node_id_t id,
     mDequeueThreadUtil = std::make_shared<DequeueThreadUtil>();
     addObserver(mDequeueThreadUtil, static_cast<int>(mComponentState), mCompHasError);
 
+    mTunnelReportUseMP = property_get_bool(C2_PROPERTY_VDEC_TUNNELREPORT_USE_MP, false);
+    mEnableMediaMetrics = property_get_bool(C2_PROPERTY_VDEC_ENABLE_MEDIA_METRICS, false);
+    mMetricsWraper = NULL;
+
     if (mFdInfoDebugEnable && mDebugUtil) {
         mDebugUtil->showCurrentProcessFdInfo();
     }
@@ -378,6 +382,10 @@ C2VdecComponent::~C2VdecComponent() {
         removeObserver(mDebugUtil);
         mDebugUtil.reset();
         mDebugUtil = NULL;
+    }
+    if (mMetricsWraper) {
+        mMetricsWraper.reset();
+        mMetricsWraper = NULL;
     }
     if (mThread.IsRunning()) {
         ::base::WaitableEvent done(::base::WaitableEvent::ResetPolicy::AUTOMATIC,
@@ -555,6 +563,9 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
         mDecoderID = mVideoDecWraper->getDecoderID();
         TraceInit();
         prctl(PR_SET_NAME, (unsigned long) TRACE_NAME_VDEC_COMPONENT_THREAD.str().c_str());
+        if (mEnableMediaMetrics) {
+            mMetricsWraper = std::make_shared<MediaMetricsWraper>(mDecoderID);
+        }
     } else {
         mVdecInitResult = VideoDecodeAcceleratorAdaptor::Result::SUCCESS;
     }
@@ -845,6 +856,13 @@ void C2VdecComponent::onDequeueWork() {
             ALOGD("%s", tmp.c_str());
         }
         sendInputBufferToAccelerator(linearBlock, bitstreamId, timestamp, work->input.flags, (unsigned char *)hdr10plusBuf, hdr10plusLen);
+        if (mMetricsWraper && mEnableMediaMetrics) {
+            metrics_frame_info info = {
+                .bitstreamid = bitstreamId,
+                .mediatime = timestamp,
+            };
+            mMetricsWraper->queueFrameInputInfo(&info);
+        }
     }
 
     //CHECK_EQ(work->worklets.size(), 1u);

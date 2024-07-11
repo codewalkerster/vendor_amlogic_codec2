@@ -52,6 +52,8 @@ public:
     AmlMessageBase* VideoTunnelRenderer_getAmlMessage();
     bool postAndReplyMsg(AmlMessageBase *msg);
     void setPlayerInfo(playerInfo* info);
+    bool setRenderedReportWithMP();
+    bool sendVideoFrame(renderframe* frame);
 
 private:
     VideoTunnelRendererBase* mVideoTunnelRenderer;

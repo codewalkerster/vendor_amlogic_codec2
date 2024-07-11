@@ -102,6 +102,10 @@ c2_status_t C2VdecComponent::TunnelHelper::start() {
         mVideoTunnelRenderer->regNotifyTunnelRenderTimeCallBack(notifyTunnelRenderTimeCallback, this);
         mVideoTunnelRenderer->regNotifyEventCallBack(notifyTunnelEventCallback, this);
         mVideoTunnelRenderer->start();
+
+        if (comp->mTunnelReportUseMP) {
+            mVideoTunnelRenderer->setRenderedReportWithMP();
+        }
     }
 
     return C2_OK;
@@ -403,12 +407,25 @@ c2_status_t C2VdecComponent::TunnelHelper::sendVideoFrameToVideoTunnel(int32_t p
     if (mVideoTunnelRenderer) {
         GraphicBlockStateChange(comp, info, GraphicBlockInfo::State::OWNER_BY_TUNNELRENDER);
         BufferStatus(comp, CODEC2_LOG_TAG_BUFFER, "tunnel send to videotunnel fd=%d, pts=%" PRId64"", info->mFd, timestamp);
-        if (intfImpl->mVendorNetflixVPeek->vpeek == true) {
-            //netflix vpeek need render at once.
-            mVideoTunnelRenderer->sendVideoFrame(info->mFd, timestamp, true);
-            intfImpl->mVendorNetflixVPeek->vpeek = false;
-        } else {
-            mVideoTunnelRenderer->sendVideoFrame(info->mFd, timestamp);
+        if (!comp->mTunnelReportUseMP) {
+            bool render = false;
+            if (intfImpl->mVendorNetflixVPeek->vpeek == true) {
+                render = true;
+                intfImpl->mVendorNetflixVPeek->vpeek = false;
+            }
+            mVideoTunnelRenderer->sendVideoFrame(info->mFd, timestamp, render);
+         } else {
+            renderframe frame = {
+                .bitstreamId = bitstreamId,
+                .fd = info->mFd,
+                .timestampUs = (int64_t)timestamp,
+                .renderAtonce = false
+            };
+            if (intfImpl->mVendorNetflixVPeek->vpeek == true) {
+                frame.renderAtonce = true;
+                intfImpl->mVendorNetflixVPeek->vpeek = false;
+            }
+            mVideoTunnelRenderer->sendVideoFrame(&frame);
         }
     }
 

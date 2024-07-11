@@ -202,4 +202,30 @@ void VideoTunnelRendererWraper::setPlayerInfo(playerInfo* info) {
     delete msg;
 }
 
+bool VideoTunnelRendererWraper::setRenderedReportWithMP() {
+    AmlMessageBase* msg = VideoTunnelRenderer_getAmlMessage();
+    if (msg == NULL) {
+        CODEC2_LOG(CODEC2_LOG_ERR, "%s msg == NULL",__func__);
+        return false;
+    }
+    msg->setInt32("renderreportusemp", 1);
+    postAndReplyMsg(msg);
+    delete msg;
+
+    return true;
+}
+
+bool VideoTunnelRendererWraper::sendVideoFrame(renderframe* frame) {
+    AmlMessageBase* msg = VideoTunnelRenderer_getAmlMessage();
+    if (msg == NULL) {
+        CODEC2_LOG(CODEC2_LOG_ERR, "%s msg == NULL",__func__);
+        return false;
+    }
+    msg->setPointer("sendVideoFrameV2", frame);
+    postAndReplyMsg(msg);
+    delete msg;
+
+    return true;
+}
+
 }
