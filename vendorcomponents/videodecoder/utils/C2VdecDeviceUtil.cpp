@@ -702,11 +702,14 @@ bool C2VdecComponent::DeviceUtil::setDuration()
     mVideoDecWraper = comp->getCompVideoDecWraper();
     LockWeakPtrWithReturnVal(wraper, mVideoDecWraper, false);
     bool ret = false;
-    C2VdecMDU_LOG(CODEC2_LOG_INFO, "into set mDurationUs = %d ", mDurationUs);
+    //tunnel mode,open afr
+    int afr = comp->isTunnelMode();
+    C2VdecMDU_LOG(CODEC2_LOG_INFO, "into set mDurationUs = %d afr:%d", mDurationUs, afr);
     AmlMessageBase *msg = VideoDecWraper::AmVideoDec_getAmlMessage();
     if (msg != NULL && mDurationUs != 0) {
         msg->setInt32("duration", mDurationUs);
         msg->setFloat("framerate", mFramerate);
+        msg->setInt32("afr", afr);
         msg->setInt32("type", 2);
         wraper->postAndReplyMsg(msg);
         ret = true;

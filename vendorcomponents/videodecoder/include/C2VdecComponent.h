@@ -187,6 +187,7 @@ public:
     bool isAmDolbyVision() {return mIsDolbyVision;}
     bool isSecureMode() {return mSecureMode;}
     bool isResolutionChanging ();
+    bool isTunnelMode() const;
 
     std::shared_ptr<IntfImpl> GetIntfImpl() {return mIntfImpl;}
     std::shared_ptr<DeviceUtil> GetDeviceUtil() {return mDeviceUtil;}
@@ -438,7 +439,6 @@ private:
     void resetInputAndOutputBufInfo(void);
 
     bool isNonTunnelMode() const;
-    bool isTunnelMode() const;
     bool isTunnerPassthroughMode() const;
     void onAndroidVideoPeek();
     bool checkIsSentId(int64_t bitstreamId);
