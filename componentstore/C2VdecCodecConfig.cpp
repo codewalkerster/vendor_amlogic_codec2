@@ -163,6 +163,7 @@ static struct {
     {C2VendorCodec::VDEC_HW_VC1, kHWVC1DecoderName, kVC1ModuleName},
     {C2VendorCodec::VDEC_H266, kH266DecoderName, kH266ModuleName},
 //video softdec
+#ifdef SUPPORT_SOFT_VDEC
     {C2VendorCodec::VDEC_VP6A, kVP6ADecoderName, NULL},
     {C2VendorCodec::VDEC_VP6F, kVP6FDecoderName, NULL},
     {C2VendorCodec::VDEC_VP8, kVP8DecoderName, NULL},
@@ -175,6 +176,7 @@ static struct {
     {C2VendorCodec::VDEC_WMV2, kWMV2DecoderName, NULL},
     {C2VendorCodec::VDEC_WMV3, kWMV3DecoderName, NULL},
     {C2VendorCodec::VDEC_VC1, kVC1DecoderName, NULL},
+#endif
 //audio decoder
     {C2VendorCodec::ADEC_MP2, kMP2DecoderName, NULL},
     {C2VendorCodec::ADEC_AAC, kAACDecoderName, NULL},
