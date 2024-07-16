@@ -1681,7 +1681,7 @@ void C2VdecComponent::onFlushDone() {
             mDeviceUtil->flush();
             mDeviceUtil->setUnstable();
             mDeviceUtil->setAviDiscard();
-            mDeviceUtil->setDuration();
+            //mDeviceUtil->setDuration();
         }
         mSentOutBitStreamIdList.clear();
     }
