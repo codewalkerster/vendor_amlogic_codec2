@@ -43,6 +43,8 @@ namespace android {
 #define UVM_META_DATA_HDR10P_DATA (1 << 1)
 #define META_DATA_SIZE 512
 
+#define SKIP_REALLOC_BUF "/sys/module/aml_media/parameters/force_skip_realloc"
+
 struct aml_meta_head_s {
     uint32_t magic;
     uint32_t type;
@@ -107,7 +109,7 @@ public:
     uint64_t getPlatformUsage(const media::Size& size);
     uint32_t getOutAlignedSize(uint32_t size, bool align64 = false,bool forceAlign = false);
     bool isNeedMaxSizeForAvc(int32_t doubleWrite);
-    bool needAllocWithMaxSize();
+    bool needAllocWithMaxSize(uint32_t width = 0, uint32_t height = 0);
     bool isReallocateOutputBuffer(VideoFormat rawFormat,VideoFormat currentFormat,
                                  bool *sizechange, bool *buffernumincrease);
     bool getMaxBufWidthAndHeight(uint32_t &width, uint32_t &height);
@@ -140,8 +142,10 @@ public:
 
     void setGameMode(bool enable);
     bool isLowLatencyMode();
+    void setSkipReallocBufMode(bool enable);
 
     void releaseGrallocSlot();
+    void setCompInstanceNum(int32_t num) {mCompInstanceNum = num;}
 private:
     friend class GrallocWraper;
     void init(bool secure);
@@ -232,7 +236,7 @@ private:
     uint32_t mSignalType;
     bool mEnableAdaptivePlayback;
     std::mutex mMutex;
-
+    int32_t mCompInstanceNum;
     /* for gralloc wraper */
     std::unique_ptr<GrallocWraper> mGrallocWraper;
 };

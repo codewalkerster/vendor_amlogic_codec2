@@ -221,7 +221,7 @@ media::Size GrallocWraper::calculateRealBufferSize(C2VdecComponent::DeviceUtil* 
 
     // use max size for some case
     size = ori;
-    if (deviceUtil->needAllocWithMaxSize()) {
+    if (deviceUtil->needAllocWithMaxSize(static_cast<uint32_t>(ori.width()), static_cast<uint32_t>(ori.height()))) {
         uint32_t maxWidth = 0;
         uint32_t maxHeight = 0;
         deviceUtil->getMaxBufWidthAndHeight(maxWidth, maxHeight);

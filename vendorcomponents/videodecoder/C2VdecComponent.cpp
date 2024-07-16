@@ -500,9 +500,11 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
             mDeviceUtil = NULL;
         }
         mDeviceUtil = std::make_shared<DeviceUtil>(mSecureMode);
+        mDeviceUtil->setCompInstanceNum(sConcurrentInstances.load() + sConcurrentInstanceSecures.load());
         addObserver(mDeviceUtil, static_cast<int>(mComponentState), mCompHasError);
         mDeviceUtil->setComponent(shared_from_this());
         mDeviceUtil->setHDRStaticColorAspects(GetIntfImpl()->getColorAspects());
+        mDeviceUtil->setSkipReallocBufMode(false);
         // set session id
         mPlayerId = mDeviceUtil->getPlayerId();
         if (mPlayerId >= 0) {
@@ -2584,7 +2586,7 @@ c2_status_t C2VdecComponent::allocateBuffersFromBlockPool(const media::Size& siz
     C2Vdec_LOG(CODEC2_LOG_INFO, "AllocateBuffersFromBlockPool(%s, 0x%x)", size.ToString().c_str(), pixelFormat);
     mDequeueThreadUtil->StopRunDequeueTask();
     size_t bufferCount = mOutputFormat.mMinNumBuffers + kDpbOutputBufferExtraCount;
-    if (isTunnelMode() || mDeviceUtil->needAllocWithMaxSize()) {
+    if (isTunnelMode() || mDeviceUtil->needAllocWithMaxSize(static_cast<uint32_t>(size.width()), static_cast<uint32_t>(size.height()))) {
         mOutBufferCount = getDefaultMaxBufNum(GetIntfImpl()->getInputCodec());
         if (bufferCount > mOutBufferCount) {
             C2Vdec_LOG(CODEC2_LOG_INFO, "required outbuffer count %d large than default num %d", (int)bufferCount, mOutBufferCount);
@@ -3236,7 +3238,7 @@ void C2VdecComponent::ProvidePictureBuffers(uint32_t minNumBuffers, uint32_t wid
     mDeviceUtil->queryStreamBitDepth();
     mDeviceUtil->checkUseP010Mode();
 
-    if (mDeviceUtil->needAllocWithMaxSize()) {
+    if (mDeviceUtil->needAllocWithMaxSize(width, height)) {
         mDeviceUtil->getMaxBufWidthAndHeight(max_width, max_height);
     }
     auto format = std::make_unique<VideoFormat>(HalPixelFormat::YCRCB_420_SP, minNumBuffers,

@@ -45,6 +45,8 @@
 #define OUTPUT_BUFS_ALIGN_SIZE_64 (64)
 #define min(a, b) (((a) > (b))? (b):(a))
 #define IS_MMU_DW(dw) (dw != 0x10)
+#define FIXED_540P_HEIGHT (576)
+
 
 namespace android {
 
@@ -69,6 +71,7 @@ C2VdecComponent::DeviceUtil::~DeviceUtil() {
         mHdr10PlusInfo.reset();
     }
     property_set(C2_PROPERTY_COMMON_LOWLATENCY_MODE, "0");
+    setSkipReallocBufMode(false);
     CODEC2_LOG(CODEC2_LOG_INFO, "[%s:%d] clear %s", __func__, __LINE__, C2_PROPERTY_COMMON_LOWLATENCY_MODE);
 }
 
@@ -135,6 +138,8 @@ void C2VdecComponent::DeviceUtil::init(bool secure) {
 
     // For Game Mode
     mMemcMode = 0;
+
+    mCompInstanceNum = 0;
 }
 
 c2_status_t C2VdecComponent::DeviceUtil::setComponent(std::shared_ptr<C2VdecComponent> sharedcomp) {
@@ -1344,7 +1349,7 @@ bool C2VdecComponent::DeviceUtil::isNeedMaxSizeForAvc(int32_t doubleWrite) {
     }
 }
 
-bool C2VdecComponent::DeviceUtil::needAllocWithMaxSize() {
+bool C2VdecComponent::DeviceUtil::needAllocWithMaxSize(uint32_t width, uint32_t height) {
     bool needMaxSize = false;
     LockWeakPtrWithReturnVal(comp, mComp, needMaxSize);
     LockWeakPtrWithReturnVal(intfImpl, mIntfImpl, needMaxSize);
@@ -1353,6 +1358,17 @@ bool C2VdecComponent::DeviceUtil::needAllocWithMaxSize() {
     if (debugrealloc)
         return false;
 
+    if (height <= FIXED_540P_HEIGHT && height > 0 && mCompInstanceNum == 1) {
+        int dw = getDoubleWriteModeValue();
+        C2VdecMDU_LOG(CODEC2_LOG_DEBUG_LEVEL1, "needAllocWithMaxSize %d-%d dw:0x%x mCompInstanceNum:%d", width, height, dw, mCompInstanceNum);
+        if (dw == 0x400) {
+            //skip afbc
+            setSkipReallocBufMode(true);
+            return false;
+        }
+    }
+    C2VdecMDU_LOG(CODEC2_LOG_DEBUG_LEVEL1, "needAllocWithMaxSize %d-%d mCompInstanceNum:%d", width, height, mCompInstanceNum);
+    setSkipReallocBufMode(false);
     if (mUseSurfaceTexture|| mNoSurface) {
         needMaxSize = false;
     } else {
@@ -1779,6 +1795,16 @@ void C2VdecComponent::DeviceUtil::setGameMode(bool enable) {
     } else {
         sc->setProperty(C2_PROPERTY_VDEC_GAME_LOW_LATENCY, "0");
         sc->setMemcMode(mMemcMode, 0);
+    }
+}
+void C2VdecComponent::DeviceUtil::setSkipReallocBufMode(bool enable) {
+    static SystemControlClient *sc = SystemControlClient::getInstance();
+
+    CODEC2_LOG(CODEC2_LOG_INFO, "setSkipReallocBufMode:%d", enable);
+    if (enable) {
+        sc->writeSysfs(SKIP_REALLOC_BUF, "1", 1);
+    } else {
+        sc->writeSysfs(SKIP_REALLOC_BUF, "0", 1);
     }
 }
 
