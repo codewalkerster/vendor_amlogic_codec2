@@ -530,7 +530,7 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
                     VideoCodecProfileToMime(mCodecProfile));
         }
 
-        uint32_t vdecflags = AM_VIDEO_DEC_INIT_FLAG_CODEC2;
+        uint32_t vdecflags = AM_VIDEO_DEC_INIT_FLAG_CODEC2 | AM_VIDEO_DEC_INIT_FLAG_ADD_CSD;
         if (mIntfImpl->mVdecWorkMode->value == VDEC_STREAMMODE) {
             vdecflags |= AM_VIDEO_DEC_INIT_FLAG_STREAMMODE;
             mVideoDecWraper->setPipeLineWorkNumber(mIntfImpl->mStreamModePipeLineDelay->value + mIntfImpl->mActualOutputDelay->value);
@@ -2923,7 +2923,7 @@ void C2VdecComponent::onCheckVideoDecReconfig() {
                 mDeviceUtil->setUseSurfaceTexture(usersurfacetexture);
             }
             mDeviceUtil->codecConfig(&mConfigParam);
-            uint32_t vdecFlags = AM_VIDEO_DEC_INIT_FLAG_CODEC2;
+            uint32_t vdecFlags = AM_VIDEO_DEC_INIT_FLAG_CODEC2 | AM_VIDEO_DEC_INIT_FLAG_ADD_CSD;
             if (mIntfImpl->mVdecWorkMode->value == VDEC_STREAMMODE)
                 vdecFlags |= AM_VIDEO_DEC_INIT_FLAG_STREAMMODE;
             if (mIntfImpl->mDataSourceType->value == DATASOURCE_DMX)
@@ -2954,7 +2954,7 @@ void C2VdecComponent::onCheckVideoDecReconfig() {
             mDeviceUtil->setNoSurface(true);
         }
         mDeviceUtil->codecConfig(&mConfigParam);
-        uint32_t vdecflags = AM_VIDEO_DEC_INIT_FLAG_CODEC2;
+        uint32_t vdecflags = AM_VIDEO_DEC_INIT_FLAG_CODEC2 | AM_VIDEO_DEC_INIT_FLAG_ADD_CSD;
         if (mIntfImpl->mVdecWorkMode->value == VDEC_STREAMMODE)
             vdecflags |= AM_VIDEO_DEC_INIT_FLAG_STREAMMODE;
         if (mIntfImpl->mDataSourceType->value == DATASOURCE_DMX)
