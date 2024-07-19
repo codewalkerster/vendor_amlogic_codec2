@@ -48,7 +48,7 @@ func componentstoreDefaults(ctx android.LoadHookContext) {
     }
 
     // config vvc
-    if vconfig.Bool("enable_vendor_media_vvc_support") == true {
+    if vconfig.Bool("enable_vendor_media_c2_vvc_support") == true {
         cppflags = append(cppflags, "-DVENDOR_MEDIA_VVC_SUPPORT=1")
     }
 
