@@ -637,7 +637,8 @@ bool C2VdecCodecConfig::isCodecSupportFrameRate(C2VendorCodec codec_type, bool s
     }
 
     if ((3840 * 2160 <= size && size <= 4096 * 2304) && support_4k) {
-        int32_t platformSupport4kFpsMax = property_get_int32(PROPERTY_PLATFORM_SUPPORT_4K_FPS_MAX, 60);
+        int32_t platformSupport4kFpsMax = property_get_int32(PROPERTY_PLATFORM_SUPPORT_4K_FPS_MAX, 61);
+        int32_t platformSupport4kFpsMaxAvc = property_get_int32(PROPERTY_PLATFORM_SUPPORT_4K_FPS_MAX_AVC, 31);
 
         struct CodecAttributes codecAttributes = attribute->second;
         float supportFrameRate = (float)codecAttributes.blocksPerSecond.max / (float)codecAttributes.blockCount.max;
@@ -647,9 +648,12 @@ bool C2VdecCodecConfig::isCodecSupportFrameRate(C2VendorCodec codec_type, bool s
         if (codecAttributes.maxSize.w * codecAttributes.maxSize.h >= (7680 * 4320)) {
             float support4KFrameRate = supportFrameRate * 4;
             supportFrameRate = MIN(platformSupport4kFpsMax, support4KFrameRate);
+        } else if (codec_type == C2VendorCodec::VDEC_H264 || codec_type == C2VendorCodec::VDEC_DVAV) {
+            supportFrameRate = MAX(platformSupport4kFpsMaxAvc, supportFrameRate);
         } else {
             supportFrameRate = MAX(platformSupport4kFpsMax, supportFrameRate);
         }
+
         CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s supported fps:%f framerate:%f blocksPerSecond:%d blockCount:%d maxSize:(%d*%d)", __func__, supportFrameRate, frameRate,
             codecAttributes.blocksPerSecond.max, codecAttributes.blockCount.max, codecAttributes.maxSize.w, codecAttributes.maxSize.h);
 
