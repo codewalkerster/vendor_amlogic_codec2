@@ -1373,8 +1373,8 @@ void C2VdecComponent::IntfImpl::onBufferSizeDeclareParam(const char* mine) {
 
             //app may set too small
             if (((size.v.width * size.v.height) > (1920 * 1088))
-                && (me.set().value < (4 * kLinearBufferSize))) {
-                me.set().value = 4 * kLinearBufferSize;
+                && (me.set().value < maxInputSize)) {
+                me.set().value = maxInputSize;
             }
 
             return C2R::Ok();
