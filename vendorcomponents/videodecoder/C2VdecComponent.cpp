@@ -3813,22 +3813,18 @@ const char* C2VdecComponent::VideoCodecProfileToMime(media::VideoCodecProfile pr
 void C2VdecComponent::onConfigureTunnelMode() {
     /* configure */
     C2Vdec_LOG(CODEC2_LOG_INFO, "[%s] synctype:%d, syncid:%d", __func__, mIntfImpl->mTunnelModeOutput->m.syncType, mIntfImpl->mTunnelModeOutput->m.syncId[0]);
-    if (mIntfImpl->mTunnelModeOutput->m.syncType == C2PortTunneledModeTuning::Struct::sync_type_t::AUDIO_HW_SYNC) {
-        int syncId = mIntfImpl->mTunnelModeOutput->m.syncId[0];
-        if (syncId >= 0) {
-            mSyncId = syncId;
-            if (mTunnelHelper) {
-                removeObserver(mTunnelHelper);
-                mTunnelHelper.reset();
-                mTunnelHelper = NULL;
-            }
-            mTunnelHelper =  std::make_shared<TunnelHelper>(mSecureMode);
-            addObserver(mTunnelHelper, static_cast<int>(mComponentState), mCompHasError);
-            mTunnelHelper->setComponent(shared_from_this());
-            mSyncType &= (~C2_SYNC_TYPE_NON_TUNNEL);
-            mSyncType |= C2_SYNC_TYPE_TUNNEL;
-        }
+    int syncId = mIntfImpl->mTunnelModeOutput->m.syncId[0];
+    mSyncId = syncId;
+    if (mTunnelHelper) {
+        removeObserver(mTunnelHelper);
+        mTunnelHelper.reset();
+        mTunnelHelper = NULL;
     }
+    mTunnelHelper =  std::make_shared<TunnelHelper>(mSecureMode);
+    addObserver(mTunnelHelper, static_cast<int>(mComponentState), mCompHasError);
+    mTunnelHelper->setComponent(shared_from_this());
+    mSyncType &= (~C2_SYNC_TYPE_NON_TUNNEL);
+    mSyncType |= C2_SYNC_TYPE_TUNNEL;
 
     return;
 }
