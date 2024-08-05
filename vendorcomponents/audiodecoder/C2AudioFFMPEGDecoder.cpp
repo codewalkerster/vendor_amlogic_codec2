@@ -291,6 +291,8 @@ void C2AudioFFMPEGDecoder::initializeState_l() {
         if (mAInfo == NULL) {
             delete mAInfo;
         }
+        if (!strcmp(mComponentName,"c2.amlogic.audio.decoder.mp2"))
+            mAInfo->codec_id = AV_CODEC_ID_MP2;
     } else {
         C2AUDIO_LOGE("%s load_ffmpeg_decoder_lib failed, errno:%s", __func__, strerror(errno));
     }
@@ -389,8 +391,8 @@ bool C2AudioFFMPEGDecoder::setUpAudioDecoder_l() {
         mAInfo->extradata_size = dataLen;
         memcpy(mAInfo->extradata, data, dataLen);
     }
-
-    mAInfo->codec_id = mIntf->getSdkCodecId();
+    if (!mAInfo->codec_id)
+        mAInfo->codec_id = mIntf->getSdkCodecId();
     mAInfo->blockalign = mIntf->getBlockAlign();
     mAInfo->channels = mIntf->getChannelCount();
     mAInfo->samplerate = mIntf->getSampleRate();
