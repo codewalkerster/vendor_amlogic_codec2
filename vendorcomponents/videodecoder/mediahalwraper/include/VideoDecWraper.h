@@ -146,6 +146,7 @@ enum {
     LOWLATENCY_DISABLE,
     LOWLATENCY_NORMAL  = (1 << 0),
     LOWLATENCY_FENCE = (1 << 1),
+    LOWLATENCY_DISPLAY = (1 << 2),
 };
 
 enum {
