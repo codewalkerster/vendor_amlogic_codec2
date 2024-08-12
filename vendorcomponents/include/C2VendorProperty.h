@@ -71,7 +71,9 @@
 #define C2_PROPERTY_VDEC_AMDV_USE_540P              "vendor.media.c2.vdec.amdv_use_540p"
 #define C2_PROPERTY_VDEC_SKIP_ERRFRAME_TIMEOUT      "vendor.media.c2.vdec.skip_errframe_timeout"
 #define C2_PROPERTY_VDEC_TUNNELREPORT_USE_MP        "vendor.media.c2.vdec.tunnel_report_use_media_proxy"
-#define C2_PROPERTY_VDEC_ENABLE_MEDIA_METRICS        "vendor.media.c2.vdec.enable_media_metrics"
+#define C2_PROPERTY_VDEC_ENABLE_MEDIA_METRICS       "vendor.media.c2.vdec.enable_media_metrics"
+#define C2_PROPERTY_VDEC_HIGH_BITRATE_MBPS          "vendor.media.c2.vdec.high_bitrate_mbps"
+#define C2_PROPERTY_VDEC_HDR10PLUS_REPORTERROR      "vendor.media.c2.vdec.hdr10plus_report_err"
 
 /* debug */
 #define C2_PROPERTY_VDEC_FD_INFO_DEBUG              "debug.vendor.media.c2.vdec.fd_info_debug"
@@ -103,6 +105,7 @@
 #define PROPERTY_PLATFORM_SUPPORT_SOFTWARE_P010     "ro.vendor.platform.support.software_10bit"
 #define PROPERTY_PLATFORM_SUPPORT_8K_BUF_MODE       "ro.vendor.platform.support.8k.buffer_mode"
 #define PROPERTY_PLATFORM_SUPPORT_HDR               "ro.vendor.platform.support.hdr"
+#define PROPERTY_PLATFORM_SUPPORT_HDR10PLUS         "ro.vendor.platform.support.hdr10plus"
 
 /* vdec property set */
 #define C2_PROPERTY_COMMON_LOWLATENCY_MODE          "vendor.media.llp"

@@ -1606,6 +1606,19 @@ void C2VdecComponent::DeviceUtil::updateHDR10plusToWork(unsigned char *data, int
     LockWeakPtrWithReturnVoid(intfImpl, mIntfImpl);
     C2VdecMDU_LOG(CODEC2_LOG_DEBUG_LEVEL2, "update Decoder HDR10+ info timestap:%lld size:%d data:",
                                 (unsigned long long)work.input.ordinal.customOrdinal.peekull(), size);
+    static bool support_hdr10plus = property_get_bool(PROPERTY_PLATFORM_SUPPORT_HDR10PLUS, true);
+    static bool hdr10plus_report_error = property_get_bool(C2_PROPERTY_VDEC_HDR10PLUS_REPORTERROR, false);
+
+    if (!support_hdr10plus) {
+        if (hdr10plus_report_error) {
+            // if platform not support hdr10plus video, report error
+            C2VdecMDU_LOG(CODEC2_LOG_ERR, "[%s#%d] got hdr10p info, platform not support hdr10+, report error", __func__, __LINE__);
+            comp->reportError(C2_CORRUPTED);
+        }
+
+        return;
+    }
+
     if (size > 0) {
         mHDR10PLusInfoChanged = true;
         mHaveHdr10PlusInStream = true;
