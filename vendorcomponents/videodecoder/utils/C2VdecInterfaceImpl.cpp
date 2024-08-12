@@ -29,6 +29,10 @@
 #include <SimpleC2Interface.h>
 #include <C2VendorConfig.h>
 
+#ifdef C2_USE_AIDL
+#include <codec2/common/HalSelection.h>
+#endif
+
 namespace android {
 
 #define AM_SIDEBAND_HANDLE_NUM_INT (3)
@@ -1398,8 +1402,8 @@ void C2VdecComponent::IntfImpl::onBufferPoolDeclareParam() {
 
     C2Allocator::id_t surfaceAllocator = C2PlatformAllocatorStore::BUFFERQUEUE;
 
-#ifdef USE_IGBA
-    surfaceAllocator = C2PlatformAllocatorStore::IGBA;
+#ifdef C2_USE_AIDL
+    surfaceAllocator = IsCodec2AidlHalSelected() ? C2PlatformAllocatorStore::IGBA : C2PlatformAllocatorStore::BUFFERQUEUE;
 #endif
 
     addParameter(

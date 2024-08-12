@@ -182,6 +182,7 @@ func codec_AidlFactory() android.Module {
 func c2_component_aml_aidl(ctx android.LoadHookContext) {
     type propsE struct {
             Cflags      []string
+            Defaults []string
     }
     p := &propsE{}
     //After Android T, libavservices name changed
@@ -194,8 +195,9 @@ func c2_component_aml_aidl(ctx android.LoadHookContext) {
     } else {
             fmt.Println("c2 Defaults sdkVersion:", sdkVersionInt)
             if sdkVersionInt > 34 {
-                fmt.Println("add USE_IGBA")
-                p.Cflags = append(p.Cflags, "-DUSE_IGBA")
+                fmt.Println("add C2_USE_AIDL")
+                p.Cflags = append(p.Cflags, "-DC2_USE_AIDL")
+                p.Defaults = []string{"libcodec2_hal_selection"}
             }
     }
     ctx.AppendProperties(p)

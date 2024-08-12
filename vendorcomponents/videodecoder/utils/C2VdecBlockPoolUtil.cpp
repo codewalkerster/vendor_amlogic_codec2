@@ -33,6 +33,10 @@
 #include <algorithm>
 #include <exception>
 
+#ifdef C2_USE_AIDL
+#include <codec2/common/HalSelection.h>
+#endif
+
 #include <bufferpool/BufferPoolTypes.h>
 
 using ::android::hardware::media::bufferpool::BufferPoolData;
@@ -75,7 +79,7 @@ public:
             return;
         }
         bool useSurface = C2PlatformAllocatorStore::BUFFERQUEUE == id;
-#ifdef USE_IGBA
+#ifdef C2_USE_AIDL
         useSurface = useSurface || (id == C2PlatformAllocatorStore::IGBA);
 #endif
         std::shared_ptr<C2AllocatorStore> allocatorStore = GetCodec2PlatformAllocatorStore();
@@ -90,7 +94,13 @@ public:
         if (useSurface)
             mBase = base;
         else {
+#ifdef C2_USE_AIDL
+            C2PooledBlockPool::BufferPoolVer ver = IsCodec2AidlHalSelected() ?
+                                C2PooledBlockPool::VER_AIDL2 : C2PooledBlockPool::VER_HIDL;
+            mBase = std::make_shared<C2PooledBlockPool> (mAllocatorBase, base->getLocalId(), ver);
+#else
             mBase = std::make_shared<C2PooledBlockPool> (mAllocatorBase, base->getLocalId());
+#endif
             C2String name = mAllocatorBase->getName();
             C2Allocator::id_t id = mAllocatorBase->getId();
             CODEC2_LOG(CODEC2_LOG_INFO, "Allocate name:%s id:%d", name.c_str(), id);
@@ -143,7 +153,7 @@ public:
             auto bq = std::static_pointer_cast<C2BufferQueueBlockPool>(mBase);
             bq->getConsumerUsage(&usage);
         }
-#ifdef USE_IGBA
+#ifdef C2_USE_AIDL
         if (getAllocatorId() == C2PlatformAllocatorStore::IGBA) {
             usage = getConsumerUsageFromfetch();
         }
@@ -153,7 +163,7 @@ public:
 
     uint64_t getConsumerUsageFromfetch() {
         uint64_t out_u = 0;
-#ifdef USE_IGBA
+#ifdef C2_USE_AIDL
         std::shared_ptr<C2GraphicBlock> block;
         C2Fence fence;
         C2MemoryUsage usage = {(C2MemoryUsage::CPU_READ | C2MemoryUsage::CPU_WRITE), 0};
@@ -205,7 +215,7 @@ C2VdecBlockPoolUtil::C2VdecBlockPoolUtil(std::shared_ptr<C2BlockPool> blockPool)
         return;
     }
     mUseSurface = C2PlatformAllocatorStore::BUFFERQUEUE == id;
-#ifdef USE_IGBA
+#ifdef C2_USE_AIDL
     mUseSurface = mUseSurface || (id == C2PlatformAllocatorStore::IGBA);
 #endif
     CODEC2_LOG(CODEC2_LOG_INFO,"pool id:%" PRId64 " use surface:%d", blockPool->getLocalId(), mUseSurface);
