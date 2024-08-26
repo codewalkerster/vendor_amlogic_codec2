@@ -506,13 +506,12 @@ int32_t GrallocWraper::getSlotID() {
 }
 
 void GrallocWraper::freeSlotID() {
-    LockWeakPtrWithReturnVoid(comp, mComp);
     if (mSlotID < 0) {
-        C2VdecGW_LOG(CODEC2_LOG_INFO, "slot id:%d NOT created", mSlotID);
+        CODEC2_LOG(CODEC2_LOG_INFO, "slot id:%d NOT created", mSlotID);
         return;
     }
 
-    C2VdecGW_LOG(CODEC2_LOG_INFO, "free slot:%d", mSlotID);
+    CODEC2_LOG(CODEC2_LOG_INFO, "free slot:%d", mSlotID);
     am_gralloc_free_slot(mSlotID);
     mSlotID = -1;
 }
