@@ -31,7 +31,7 @@
 #include <cutils/properties.h>
 #include <utils/Log.h>
 #include <inttypes.h>
-
+#include <C2VendorImgSupport.h>
 #include <dlfcn.h>
 
 #include <map>
@@ -59,7 +59,7 @@ const C2String kComponentLoadSoftVideoDecoderLibrary = "libcodec2_aml_soft_video
 #endif
 const C2String kComponentLoadVideoEncoderLibrary = "libcodec2_aml_video_encoder.so";
 const C2String kComponentLoadAudioDecoderLibrary = "libcodec2_aml_audio_decoder.so";
-
+const C2String kComponentLoadIMGDecoderLibrary = "libcodec2_aml_soft_image_decoder.so";
 
 static RETURN_STATUS C2VendorCheckFileMS12Status(void)
 {
@@ -453,6 +453,10 @@ c2_status_t C2VendorComponentStore::ComponentModule::init(std::string libPath, C
                   createFactoryName = "CreateC2VdecMJPGFactory";
                   destroyFactoryName = "DestroyC2VdecMJPGFactory";
                   break;
+              case C2VendorCodec::VDEC_JPEG:
+                  createFactoryName = "CreateC2SoftImageJPEGFactory";
+                  destroyFactoryName = "DestroyC2SoftImageJPEGFactory";
+                  break;
 #ifdef SUPPORT_VDEC_AVS3
             case C2VendorCodec::VDEC_AVS3:
                 createFactoryName = "CreateC2VdecAVS3Factory";
@@ -696,6 +700,15 @@ C2VendorComponentStore::C2VendorComponentStore()
             mComponents.emplace(std::piecewise_construct, std::forward_as_tuple(gC2VideoEncoderComponents[i].compname),
                     std::forward_as_tuple(kComponentLoadVideoEncoderLibrary, gC2VideoEncoderComponents[i].codec));
             ALOGI("C2VendorComponentStore i:%d, compName:%s and id:%d\n", i, gC2VideoEncoderComponents[i].compname.c_str(), gC2VideoEncoderComponents[i].codec);
+        }
+    }
+    for (int i = 0; i < sizeof(gC2ImgDecComponents) / sizeof(gC2ImgDecComponents); i++) {
+        if (!C2VdecCodecConfig::getInstance().codecSupport(gC2ImgDecComponents[i].codec, false, false, true)) {
+            ALOGW("%s not support for decoder not support or codec customize", gC2ImgDecComponents[i].compname.c_str());
+        } else {
+            mComponents.emplace(std::piecewise_construct, std::forward_as_tuple(gC2ImgDecComponents[i].compname),
+                    std::forward_as_tuple(kComponentLoadIMGDecoderLibrary, gC2ImgDecComponents[i].codec));
+            ALOGI("getImageDec i:%d, compName:%s and id:%d\n", i, gC2ImgDecComponents[i].compname.c_str(), gC2ImgDecComponents[i].codec);
         }
     }
     if (supportC2Adec) {

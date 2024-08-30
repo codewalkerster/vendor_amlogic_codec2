@@ -28,6 +28,7 @@
 #include <AmVideoDecBase.h>
 #include <C2VendorSoftVideoSupport.h>
 #include <C2VendorAudioSupport.h>
+#include <C2VendorImgSupport.h>
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -191,6 +192,7 @@ static struct {
     {C2VendorCodec::ADEC_DTSUHD, kDTSUHDDecoderName, NULL},
     {C2VendorCodec::ADEC_AC4, kAC4DecoderName, NULL},
     {C2VendorCodec::ADEC_MP1, kMP1DecoderName, NULL},
+    {C2VendorCodec::VDEC_JPEG, kJPEGDecoderName, NULL},
 };
 
 static struct {
