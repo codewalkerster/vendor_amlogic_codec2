@@ -2726,10 +2726,7 @@ void C2VdecComponent::sendOutputBufferToAccelerator(GraphicBlockInfo* info, bool
                 mDeviceUtil->updateDisplayInfoToGralloc(handle, mDeviceUtil->getVideoType(), mSessionID);
         }
         if (mVideoDecWraper) {
-            if (mDeviceUtil->checkUseP010Mode() == kUseHardwareP010) {
-                isNV21 = false;
-                C2Vdec_LOG(CODEC2_LOG_DEBUG_LEVEL2, "[%s] isNV21:%d", __func__, isNV21);
-            }
+            // not tranfer NV12/NV12 here, ignore it
             mVideoDecWraper->importBufferForPicture(info->mBlockId, info->mFd,
                     metaFd, vaddr, size, isNV21);
             info->mFdHaveSet = true;

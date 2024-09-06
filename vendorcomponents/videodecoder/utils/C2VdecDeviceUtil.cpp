@@ -1704,7 +1704,8 @@ bool C2VdecComponent::DeviceUtil::checkConfigInfoFromDecoderAndReconfig(int type
             configChanged = true;
         }
     } else if (type & YCBCR_P010_STREAM) {
-        if (mHwSupportP010) {
+        if (mHwSupportP010
+            &&(mUseSurfaceTexture || mNoSurface)) {
             int32_t doubleWrite = getDoubleWriteModeValue();
             int32_t tripleWrite = 0;
 
