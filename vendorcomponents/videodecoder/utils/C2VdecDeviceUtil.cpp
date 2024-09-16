@@ -1358,7 +1358,7 @@ bool C2VdecComponent::DeviceUtil::needAllocWithMaxSize(uint32_t width, uint32_t 
     if (debugrealloc)
         return false;
 
-    if (height <= FIXED_540P_HEIGHT && height > 0 && mCompInstanceNum == 1) {
+    if (height <= FIXED_540P_HEIGHT && height > 0 && width <= 720 && mCompInstanceNum == 1) {
         int dw = getDoubleWriteModeValue();
         C2VdecMDU_LOG(CODEC2_LOG_DEBUG_LEVEL1, "needAllocWithMaxSize %d-%d dw:0x%x mCompInstanceNum:%d", width, height, dw, mCompInstanceNum);
         if (dw == 0x400) {
