@@ -37,6 +37,7 @@ enum TRICK_MODE {
     TRICKMODE_SMOOTH = 1, //based on the playback rate of the codec
     TRICKMODE_BY_SEEK, //playback speed is achieved by changing the play position
     TRICKMODE_I_ONLY, //playback speed is achieved by I frame
+    TRICKMODE_I_ONLY_IONLY_MEDIASYNC_BYPASS, //playback speed is achieved by I frame without mediasync
     TRICKMODE_MAX,
 };
 
@@ -44,7 +45,8 @@ enum {
     TRICK_MODE_NONE = 0,          // Disable trick mode
     TRICK_MODE_PAUSE = 1,         // Pause the video decoder
     TRICK_MODE_PAUSE_NEXT = 2,    // Pause the video decoder when a new frame displayed
-    TRICK_MODE_IONLY = 3          // Decoding and Out I frame only
+    TRICK_MODE_IONLY = 3,         // Decoding and Out I frame only
+    TRICK_MODE_IONLY_MEDIASYNC_BYPASS = 4          // Decoding and Out I frame only without mediasync
 };
 
 enum WORK_MODE {
@@ -179,7 +181,9 @@ c2_status_t C2VdecComponent::TunerPassthroughHelper::setTrickMode() {
         mode = TRICK_MODE_PAUSE_NEXT;
     } else if (mode == TRICKMODE_I_ONLY) {
         mode = TRICK_MODE_IONLY;
-    } else {
+    } else if (mode == TRICKMODE_I_ONLY_IONLY_MEDIASYNC_BYPASS) {
+        mode = TRICK_MODE_IONLY_MEDIASYNC_BYPASS;
+     }else {
         mode = TRICK_MODE_NONE;
     }
 
@@ -189,7 +193,7 @@ c2_status_t C2VdecComponent::TunerPassthroughHelper::setTrickMode() {
     C2VdecTPH_LOG(CODEC2_LOG_INFO, "passthrough trickmode:%d, trickspeed:%d, frameAdvance:%d", mode, trickSpeed, frameAdvance);
 
     if (frameAdvance == 1 && mode == TRICK_MODE_NONE) {
-        C2VdecTPH_LOG(CODEC2_LOG_INFO, "fury step I only frame");
+        C2VdecTPH_LOG(CODEC2_LOG_INFO, "step I only frame");
         return C2_OK;
     }
 
