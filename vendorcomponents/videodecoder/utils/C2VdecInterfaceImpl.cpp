@@ -936,48 +936,99 @@ void C2VdecComponent::IntfImpl::onMp4vDeclareParam() {
 }
 
 void C2VdecComponent::IntfImpl::onMjpgDeclareParam() {
-    /*
     addParameter(
         DefineParam(mProfileLevel, C2_PARAMKEY_PROFILE_LEVEL)
             .withDefault(new C2StreamProfileLevelInfo::input(
-                    0u, C2Config::PROFILE_DV_HE_05, C2Config::LEVEL_DV_MAIN_UHD_60))
+                    0u, C2Config::PROFILE_UNUSED, C2Config::LEVEL_UNUSED))
             .withFields(
             {
                 C2F(mProfileLevel, profile)
-                    .oneOf({C2Config::PROFILE_MP4V_SIMPLE,
-                        C2Config::PROFILE_MP4V_SIMPLE_SCALABLE,
-                        C2Config::PROFILE_MP4V_MAIN,
-                        C2Config::PROFILE_MP4V_NBIT,
-                        C2Config::PROFILE_MP4V_ARTS}),
+                    .oneOf({C2Config::PROFILE_UNUSED,}),
                 C2F(mProfileLevel, level)
-                    .oneOf({C2Config::LEVEL_MP4V_0,
-                        C2Config::LEVEL_MP4V_0B,
-                        C2Config::LEVEL_MP4V_1,
-                        C2Config::LEVEL_MP4V_2,
-                        C2Config::LEVEL_MP4V_3,
-                        C2Config::LEVEL_MP4V_3B,
-                        C2Config::LEVEL_MP4V_4,
-                        C2Config::LEVEL_MP4V_4A,
-                        C2Config::LEVEL_MP4V_5})
+                    .oneOf({C2Config::LEVEL_UNUSED,})
             })
     .withSetter(ProfileLevelSetter)
     .build());
-    */
 }
 
 void C2VdecComponent::IntfImpl::onAvsDeclareParam() {
+    addParameter(
+        DefineParam(mProfileLevel, C2_PARAMKEY_PROFILE_LEVEL)
+            .withDefault(new C2StreamProfileLevelInfo::input(
+                    0u, C2Config::PROFILE_UNUSED, C2Config::LEVEL_UNUSED))
+            .withFields(
+            {
+                C2F(mProfileLevel, profile)
+                    .oneOf({C2Config::PROFILE_UNUSED,}),
+                C2F(mProfileLevel, level)
+                    .oneOf({C2Config::LEVEL_UNUSED,})
+            })
+    .withSetter(ProfileLevelSetter)
+    .build());
 }
 
 void C2VdecComponent::IntfImpl::onAvs2DeclareParam() {
+    addParameter(
+        DefineParam(mProfileLevel, C2_PARAMKEY_PROFILE_LEVEL)
+            .withDefault(new C2StreamProfileLevelInfo::input(
+                    0u, C2Config::PROFILE_UNUSED, C2Config::LEVEL_UNUSED))
+            .withFields(
+            {
+                C2F(mProfileLevel, profile)
+                    .oneOf({C2Config::PROFILE_UNUSED,}),
+                C2F(mProfileLevel, level)
+                    .oneOf({C2Config::LEVEL_UNUSED,})
+            })
+    .withSetter(ProfileLevelSetter)
+    .build());
 }
 
 void C2VdecComponent::IntfImpl::onAvs3DeclareParam() {
+    addParameter(
+        DefineParam(mProfileLevel, C2_PARAMKEY_PROFILE_LEVEL)
+            .withDefault(new C2StreamProfileLevelInfo::input(
+                    0u, C2Config::PROFILE_UNUSED, C2Config::LEVEL_UNUSED))
+            .withFields(
+            {
+                C2F(mProfileLevel, profile)
+                    .oneOf({C2Config::PROFILE_UNUSED,}),
+                C2F(mProfileLevel, level)
+                    .oneOf({C2Config::LEVEL_UNUSED,})
+            })
+    .withSetter(ProfileLevelSetter)
+    .build());
 }
 
 void C2VdecComponent::IntfImpl::onVc1DeclareParam() {
+    addParameter(
+        DefineParam(mProfileLevel, C2_PARAMKEY_PROFILE_LEVEL)
+            .withDefault(new C2StreamProfileLevelInfo::input(
+                    0u, C2Config::PROFILE_UNUSED, C2Config::LEVEL_UNUSED))
+            .withFields(
+            {
+                C2F(mProfileLevel, profile)
+                    .oneOf({C2Config::PROFILE_UNUSED,}),
+                C2F(mProfileLevel, level)
+                    .oneOf({C2Config::LEVEL_UNUSED,})
+            })
+    .withSetter(ProfileLevelSetter)
+    .build());
 }
 
 void C2VdecComponent::IntfImpl::onH266DeclareParam() {
+    addParameter(
+        DefineParam(mProfileLevel, C2_PARAMKEY_PROFILE_LEVEL)
+            .withDefault(new C2StreamProfileLevelInfo::input(
+                    0u, C2Config::PROFILE_UNUSED, C2Config::LEVEL_UNUSED))
+            .withFields(
+            {
+                C2F(mProfileLevel, profile)
+                    .oneOf({C2Config::PROFILE_UNUSED,}),
+                C2F(mProfileLevel, level)
+                    .oneOf({C2Config::LEVEL_UNUSED,})
+            })
+    .withSetter(ProfileLevelSetter)
+    .build());
 }
 
 void C2VdecComponent::IntfImpl::onHdrDeclareParam(const std::shared_ptr<C2ReflectorHelper>& helper) {
