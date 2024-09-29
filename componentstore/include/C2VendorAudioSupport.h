@@ -17,6 +17,7 @@ namespace android {
 
 /*audio*/
 const C2String kMP2DecoderName      = "c2.amlogic.audio.decoder.mp2";
+const C2String kMP1DecoderName      = "c2.amlogic.audio.decoder.mp1";
 const C2String kAACDecoderName      = "c2.amlogic.audio.decoder.aac";
 const C2String kAC3DecoderName      = "c2.amlogic.audio.decoder.ac3";
 const C2String kEC3DecoderName      = "c2.amlogic.audio.decoder.eac3";
@@ -38,6 +39,7 @@ static C2VendorComponent gC2AudioDecoderComponents [] = {
     {kDTSEDecoderName, C2VendorCodec::ADEC_DTSE},
     {kDTSUHDDecoderName, C2VendorCodec::ADEC_DTSUHD},
     {kAC4DecoderName, C2VendorCodec::ADEC_AC4},
+    {kMP1DecoderName, C2VendorCodec::ADEC_MP1},
 };
 
 }  // namespace android

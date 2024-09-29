@@ -190,6 +190,7 @@ static struct {
     {C2VendorCodec::ADEC_DTSE, kDTSEDecoderName, NULL},
     {C2VendorCodec::ADEC_DTSUHD, kDTSUHDDecoderName, NULL},
     {C2VendorCodec::ADEC_AC4, kAC4DecoderName, NULL},
+    {C2VendorCodec::ADEC_MP1, kMP1DecoderName, NULL},
 };
 
 static struct {

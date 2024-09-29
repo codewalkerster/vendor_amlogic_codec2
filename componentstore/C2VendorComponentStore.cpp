@@ -338,6 +338,11 @@ c2_status_t C2VendorComponentStore::ComponentModule::init(std::string libPath, C
                     createFactoryName = "CreateC2AudioDecoderMP2Factory";
                     destroyFactoryName = "DestroyC2AudioDecoderMP2Factory";
                     break;
+                case C2VendorCodec::ADEC_MP1:
+                    ALOGI("in %s  start mp1 decoder create", __func__);
+                    createFactoryName = "CreateC2AudioDecoderMP1Factory";
+                    destroyFactoryName = "DestroyC2AudioDecoderMP1Factory";
+                    break;
               case C2VendorCodec::ADEC_FFMPEG:
                   createFactoryName = "CreateC2AudioDecoderFFMPEGFactory";
                   destroyFactoryName = "DestroyC2AudioDecoderFFMPEGFactory";

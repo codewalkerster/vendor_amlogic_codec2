@@ -49,6 +49,7 @@
 #define AV_CODEC_ID_ADPCM_IMA_WAV 0x11001
 #define AV_CODEC_ID_ADPCM_MS 0x11006
 #define AV_CODEC_ID_MP2 0x15000
+#define AV_CODEC_ID_MP1 0x1502A
 #define AV_CODEC_ID_WMA 0x15007
 #define AV_CODEC_ID_WMAV2 0x15008
 #define AV_CODEC_ID_COOK 0x15014
@@ -62,6 +63,7 @@
 const char *MEDIA_MIMETYPE_AUDIO_FFMPEG = "audio/ffmpeg";
 constexpr char COMPONENT_NAME_FFMPEG[] = "c2.amlogic.audio.decoder.ffmpeg";
 constexpr char COMPONENT_NAME_MP2[]    = "c2.amlogic.audio.decoder.mp2";
+constexpr char COMPONENT_NAME_MP1[]    = "c2.amlogic.audio.decoder.mp1";
 
 static int prevSampleRate = 0;
 static int prevNumChannels = 0;
@@ -78,6 +80,8 @@ static const char *ConvertComponentRoleToMimeType(const char *componentRole) {
         return const_cast<char *>(MEDIA_MIMETYPE_AUDIO_FFMPEG);
     } else if (strstr(componentRole, "mp2")) {
         return const_cast<char *>(MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_II);
+    } else if (strstr(componentRole, "mp1")) {
+        return const_cast<char *>(MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_I);
     } else {
         C2AUDIO_LOGE("Not support %s yet, need to add!", componentRole);
         return "NA";
@@ -293,6 +297,8 @@ void C2AudioFFMPEGDecoder::initializeState_l() {
         }
         if (!strcmp(mComponentName,"c2.amlogic.audio.decoder.mp2"))
             mAInfo->codec_id = AV_CODEC_ID_MP2;
+        if (!strcmp(mComponentName,"c2.amlogic.audio.decoder.mp1"))
+            mAInfo->codec_id = AV_CODEC_ID_MP1;
     } else {
         C2AUDIO_LOGE("%s load_ffmpeg_decoder_lib failed, errno:%s", __func__, strerror(errno));
     }
@@ -471,6 +477,7 @@ void C2AudioFFMPEGDecoder::onReset() {
         (*ffmpeg_decoder_close)(mCodec);
 
     if ((mAInfo->codec_id == AV_CODEC_ID_MP2
+        || mAInfo->codec_id == AV_CODEC_ID_MP1
         || mAInfo->codec_id == AV_CODEC_ID_WMA
         || mAInfo->codec_id == AV_CODEC_ID_WMAPRO
         || mAInfo->codec_id == AV_CODEC_ID_ADPCM_IMA_WAV
@@ -858,10 +865,13 @@ private:
          ALOGV("create component %s ", #type);\
          std::string type_ffmeg = "FFMPEG";\
          std::string type_mp2 = "MP2";\
+         std::string type_mp1 = "MP1";\
          if (!type_ffmeg.compare(#type)) {\
              return new ::android::C2AudioFFMPEGDecFactory(COMPONENT_NAME_FFMPEG);\
          } else if (!type_mp2.compare(#type)) {\
             return new ::android::C2AudioFFMPEGDecFactory(COMPONENT_NAME_MP2);\
+         } else if (!type_mp1.compare(#type)) {\
+            return new ::android::C2AudioFFMPEGDecFactory(COMPONENT_NAME_MP1);\
          } else {\
             ALOGW("create component %s, not valid and please check the type", #type);\
             return nullptr;\
@@ -878,3 +888,5 @@ CreateC2AudioDecFactory(FFMPEG)
 DestroyC2AudioDecFactory(FFMPEG)
 CreateC2AudioDecFactory(MP2)
 DestroyC2AudioDecFactory(MP2)
+CreateC2AudioDecFactory(MP1)
+DestroyC2AudioDecFactory(MP1)
