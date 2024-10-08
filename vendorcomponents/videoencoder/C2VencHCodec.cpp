@@ -293,6 +293,7 @@ public:
             .withFields({
                 C2F(mProfileLevel, profile).oneOf({
                     PROFILE_AVC_BASELINE,
+                    PROFILE_AVC_MAIN,
                     //PROFILE_AVC_CONSTRAINED_BASELINE,
                     //PROFILE_AVC_MAIN,
                 }),
@@ -311,7 +312,7 @@ public:
                     LEVEL_AVC_4,
                     LEVEL_AVC_4_1,
                     LEVEL_AVC_4_2,
-                    LEVEL_AVC_5,
+                    LEVEL_AVC_5
                 }),
             })
             .withSetter(ProfileLevelSetter, mSize, mFrameRate, mBitrate)
@@ -508,29 +509,17 @@ public:
         // not, update the level with the lowest level meeting the requirements.
 
         bool found = false;
-        // By default needsUpdate = false in case the supplied level does meet
-        // the requirements. For Level 1b, we want to update the level anyway,
-        // so we set it to true in that case.
-        bool needsUpdate = (me.v.level == LEVEL_AVC_1B);
         for (const LevelLimits &limit : kLimits) {
             if (mbs <= limit.mbs && mbsPerSec <= limit.mbsPerSec &&
                     bitrate.v.value <= limit.bitrate) {
                 // This is the lowest level that meets the requirements, and if
                 // we haven't seen the supplied level yet, that means we don't
                 // need the update.
-                if (needsUpdate) {
-                    ALOGD("Given level %x does not cover current configuration: "
-                          "adjusting to %x", me.v.level, limit.level);
-                    me.set().level = limit.level;
-                }
+                ALOGD("Given level %x does not cover current configuration: "
+                      "adjusting to %x", me.v.level, limit.level);
+                me.set().level = limit.level;
                 found = true;
                 break;
-            }
-            if (me.v.level == limit.level) {
-                // We break out of the loop when the lowest feasible level is
-                // found. The fact that we're here means that our level doesn't
-                // meet the requirement and needs to be updated.
-                needsUpdate = true;
             }
         }
         if (!found) {
@@ -901,7 +890,6 @@ void C2VencHCodec::codec2ProfileLevelTrans(vl_h_enc_profile_e *profile,vl_h_enc_
     else {
         (*profile) = ENC_AVC_MAIN;
     }
-
     switch (mProfileLevel->level) {
         case LEVEL_AVC_1:
             cur_level = ENC_AVC_LEVEL1;

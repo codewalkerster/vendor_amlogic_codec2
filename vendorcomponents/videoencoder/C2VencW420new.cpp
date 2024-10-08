@@ -278,20 +278,25 @@ public:
     addParameter(
             DefineParam(mProfileLevel, C2_PARAMKEY_PROFILE_LEVEL)
             .withDefault(new C2StreamProfileLevelInfo::output(
-                    0u, PROFILE_HEVC_MAIN, LEVEL_HEVC_HIGH_5_1))
+                    0u, PROFILE_HEVC_MAIN, LEVEL_HEVC_MAIN_4))
             .withFields({
                 C2F(mProfileLevel, profile).oneOf({
                     PROFILE_HEVC_MAIN,
                 }),
                 C2F(mProfileLevel, level).oneOf({
-                        LEVEL_HEVC_HIGH_4,  ///< HEVC (H.265) High Tier Level 4
-                        LEVEL_HEVC_HIGH_4_1,                        ///< HEVC (H.265) High Tier Level 4.1
-                        LEVEL_HEVC_HIGH_5,                          ///< HEVC (H.265) High Tier Level 5
-                        LEVEL_HEVC_HIGH_5_1,                        ///< HEVC (H.265) High Tier Level 5.1
-                        LEVEL_HEVC_HIGH_5_2,                        ///< HEVC (H.265) High Tier Level 5.2
-                        LEVEL_HEVC_HIGH_6,                          ///< HEVC (H.265) High Tier Level 6
-                        LEVEL_HEVC_HIGH_6_1,                        ///< HEVC (H.265) High Tier Level 6.1
-                        LEVEL_HEVC_HIGH_6_2,                        ///< HEVC (H.265) High Tier Level 6.2
+                        LEVEL_HEVC_MAIN_1,                          ///< HEVC (H.265) Main Tier Level 1
+                        LEVEL_HEVC_MAIN_2,                          ///< HEVC (H.265) Main Tier Level 2
+                        LEVEL_HEVC_MAIN_2_1,                        ///< HEVC (H.265) Main Tier Level 2.1
+                        LEVEL_HEVC_MAIN_3,                          ///< HEVC (H.265) Main Tier Level 3
+                        LEVEL_HEVC_MAIN_3_1,                        ///< HEVC (H.265) Main Tier Level 3.1
+                        LEVEL_HEVC_MAIN_4,                          ///< HEVC (H.265) Main Tier Level 4
+                        LEVEL_HEVC_MAIN_4_1,                        ///< HEVC (H.265) Main Tier Level 4.1
+                        LEVEL_HEVC_MAIN_5,                          ///< HEVC (H.265) Main Tier Level 5
+                        LEVEL_HEVC_MAIN_5_1,                        ///< HEVC (H.265) Main Tier Level 5.1
+                        LEVEL_HEVC_MAIN_5_2,                        ///< HEVC (H.265) Main Tier Level 5.2
+                        LEVEL_HEVC_MAIN_6,                          ///< HEVC (H.265) Main Tier Level 6
+                        LEVEL_HEVC_MAIN_6_1,                        ///< HEVC (H.265) Main Tier Level 6.1
+                        LEVEL_HEVC_MAIN_6_2,                        ///< HEVC (H.265) Main Tier Level 6.2
                 }),
             })
             .withSetter(ProfileLevelSetter, mSize, mFrameRate, mBitrate)
@@ -425,7 +430,7 @@ public:
             me.set().profile = PROFILE_HEVC_MAIN;
         }
         if (!me.F(me.v.level).supportsAtAll(me.v.level)) {
-            me.set().level = LEVEL_HEVC_MAIN_5;
+            me.set().level = LEVEL_HEVC_MAIN_4;
         }
 
         struct LevelLimits {
@@ -457,33 +462,22 @@ public:
         // not, update the level with the lowest level meeting the requirements.
 
         bool found = false;
-        // By default needsUpdate = false in case the supplied level does meet
-        // the requirements.
-        bool needsUpdate = false;
         for (const LevelLimits &limit : kLimits) {
             if (samples <= limit.samples && samplesPerSec <= limit.samplesPerSec &&
                     bitrate.v.value <= limit.bitrate) {
                 // This is the lowest level that meets the requirements, and if
                 // we haven't seen the supplied level yet, that means we don't
                 // need the update.
-                if (needsUpdate) {
-                    ALOGD("Given level %x does not cover current configuration: "
-                          "adjusting to %x", me.v.level, limit.level);
-                    me.set().level = limit.level;
-                }
+                ALOGD("Given level %x does not cover current configuration: "
+                      "adjusting to %x", me.v.level, limit.level);
+                me.set().level = limit.level;
                 found = true;
                 break;
-            }
-            if (me.v.level == limit.level) {
-                // We break out of the loop when the lowest feasible level is
-                // found. The fact that we're here means that our level doesn't
-                // meet the requirement and needs to be updated.
-                needsUpdate = true;
             }
         }
         if (!found) {
             // We set to the highest supported level.
-            me.set().level = LEVEL_HEVC_MAIN_5_2;
+            me.set().level = LEVEL_HEVC_MAIN_4;
         }
         return C2R::Ok();
     }
@@ -886,6 +880,94 @@ bool C2VencW420New::codec2TypeTrans(ColorFmt inputFmt,vl_img_format_hevc_t *pOut
     return ret;
 }
 
+
+vl_level_t C2VencW420New::TransLevel(vl_level_t *plevel,vl_tier_t *ptier) {
+    vl_level_t level = LEVEL1_HEVC;
+    vl_tier_t tier = HEVC_TIER_MAIN;
+
+    switch (mProfileLevel->level) {
+        case LEVEL_HEVC_MAIN_1:
+            level = LEVEL1_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_2:
+            level = LEVEL2_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_2_1:
+            level = LEVEL2_1_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_3:
+            level = LEVEL3_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_3_1:
+            level = LEVEL3_1_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_4:
+            level = LEVEL4_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_4_1:
+            level = LEVEL4_1_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_5:
+            level = LEVEL5_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_5_1:
+            level = LEVEL5_1_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_5_2:
+            level = LEVEL5_2_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_6:
+            level = LEVEL6_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_6_1:
+            level = LEVEL6_1_HEVC;
+            break;
+        case LEVEL_HEVC_MAIN_6_2:
+            level = LEVEL6_2_HEVC;
+            break;
+        case LEVEL_HEVC_HIGH_4:
+            tier = HEVC_TIER_HIGH;
+            level = LEVEL4_HEVC;
+            break;
+        case LEVEL_HEVC_HIGH_4_1:
+            tier = HEVC_TIER_HIGH;
+            level = LEVEL4_1_HEVC;
+            break;
+        case LEVEL_HEVC_HIGH_5:
+            tier = HEVC_TIER_HIGH;
+            level = LEVEL5_HEVC;
+            break;
+        case LEVEL_HEVC_HIGH_5_1:
+            tier = HEVC_TIER_HIGH;
+            level = LEVEL5_1_HEVC;
+            break;
+        case LEVEL_HEVC_HIGH_5_2:
+            tier = HEVC_TIER_HIGH;
+            level = LEVEL5_2_HEVC;
+            break;
+        case LEVEL_HEVC_HIGH_6:
+            tier = HEVC_TIER_HIGH;
+            level = LEVEL6_HEVC;
+            break;
+        case LEVEL_HEVC_HIGH_6_1:
+            tier = HEVC_TIER_HIGH;
+            level = LEVEL6_1_HEVC;
+            break;
+        case LEVEL_HEVC_HIGH_6_2:
+            tier = HEVC_TIER_HIGH;
+            level = LEVEL6_2_HEVC;
+            break;
+        default:
+            level = LEVEL4_HEVC;
+            break;
+    }
+    *plevel = level;
+    *ptier = tier;
+    ALOGE("TransLevel:%d,input:%x,tier:%x",level,mProfileLevel->level,tier);
+    return level;
+}
+
+
 c2_status_t C2VencW420New::Init() {
     C2W420_LOG(CODEC2_VENC_LOG_INFO,"C2VencW420New Init!");
     vl_img_format_hevc_t colorformat = IMG_FMT_NONE;
@@ -949,6 +1031,8 @@ c2_status_t C2VencW420New::Init() {
     qp_tbl.qp_min = DEFAULT_QP_MIN;
     qp_tbl.qp_max = DEFAULT_QP_MAX;
 
+    TransLevel(&initParam.level,&initParam.tier);
+
     initParam.enc_feature_opts |= ENABLE_PARA_UPDATE; //enable dynamic settings
 
     if (C2_OK == genVuiParam(&initParam.primaries,&initParam.transfer,&initParam.matrix,(bool *)&initParam.range)) {
@@ -966,14 +1050,16 @@ c2_status_t C2VencW420New::Init() {
     }
 
 
-    C2W420_LOG(CODEC2_VENC_LOG_INFO,"width:%d,height:%d,framerate:%f,bitrate:%d,IFrameInterval:%d,QP_MIN:%d,QP_MAX:%d",
+    C2W420_LOG(CODEC2_VENC_LOG_INFO,"width:%d,height:%d,framerate:%f,bitrate:%d,IFrameInterval:%d,QP_MIN:%d,QP_MAX:%d,level:%d,tier:%d",
                                           mSize->width,
                                           mSize->height,
                                           mFrameRate->value,
                                           mBitrate->value,
                                           mIDRInterval,
                                           qp_tbl.qp_min,
-                                          qp_tbl.qp_max);
+                                          qp_tbl.qp_max,
+                                          initParam.level,
+                                          initParam.tier);
     mCodecHandle = mInitFunc(CODEC_ID_H265,initParam,&qp_tbl);
     if (!mCodecHandle) {
         C2W420_LOG(CODEC2_VENC_LOG_ERR,"init failed!,codechandle:%lx",mCodecHandle);
@@ -1134,10 +1220,10 @@ c2_status_t C2VencW420New::ProcessOneFrame(InputFrameInfo_t InputFrameInfo,Outpu
                                                   InputFrameInfo.shareFd[1],
                                                   InputFrameInfo.shareFd[2]);
     }
-    else if (CANVAS == InputFrameInfo.bufType) {
+    /*else if (CANVAS == InputFrameInfo.bufType) {
         inputInfo.buf_type = CANVAS_TYPE;
         inputInfo.buf_info.canvas = InputFrameInfo.canvas;
-    }
+    }*/
     else {
         inputInfo.buf_type = VMALLOC_TYPE;
         if (IMG_FMT_RGBA8888 == inputInfo.buf_fmt) {

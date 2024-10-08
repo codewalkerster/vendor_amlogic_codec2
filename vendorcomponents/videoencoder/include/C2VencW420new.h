@@ -53,6 +53,7 @@ private:
     c2_status_t genVuiParam(int32_t *primaries,int32_t *transfer,int32_t *matrixCoeffs,bool *range);
     bool codecTypeTrans(uint32_t inputCodec,vl_img_format_hevc_t *pOutputCodec);
     bool codec2TypeTrans(ColorFmt inputFmt,vl_img_format_hevc_t *pOutputCodec);
+    vl_level_t TransLevel(vl_level_t *plevel,vl_tier_t *ptier);
     c2_status_t getQp(int32_t *i_qp_max,int32_t *i_qp_min,int32_t *p_qp_max,int32_t *p_qp_min);
     void ParseGop(const C2StreamGopTuning::output &gop,uint32_t *syncInterval, uint32_t *iInterval, uint32_t *maxBframes);
     int getFrameRate(int32_t frameIndex,int64_t timestamp);
