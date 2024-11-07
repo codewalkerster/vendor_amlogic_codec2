@@ -155,6 +155,7 @@ static const uint64_t kLogTimeout = 60*15;
     } while (0)
 
 struct AmlDiagnosticStatsQty;
+class MediaProxyConsumer;
 
 class C2VdecComponent::DebugUtil : public IC2Observer, public IC2Debuggable {
 public:
@@ -172,6 +173,7 @@ public:
     void showGraphicBlockInfo();
     void startShowPipeLineBuffer();
     void showCurrentProcessFdInfo();
+    void reportVendorExtError(int32_t err);
 
     void ctor();
     void start();
@@ -203,6 +205,11 @@ private:
     nsecs_t mStartedAt;
     nsecs_t mStoppedAt;
     nsecs_t mDestroyedAt;
+
+    bool mUseVendorExtError;
+    uint32_t mVendorExtErrorMask;
+    uint32_t mMediaProxyMessageTypes;
+    MediaProxyConsumer *mMediaProxyConsumer;
 
     std::shared_ptr<AmlDiagnosticStatsQty> mInputQtyStats;
     std::shared_ptr<AmlDiagnosticStatsQty> mOutputQtyStats;

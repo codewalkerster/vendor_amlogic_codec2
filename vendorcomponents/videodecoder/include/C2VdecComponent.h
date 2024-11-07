@@ -431,7 +431,7 @@ private:
     // Abandon all works in |mPendingWorks| and |mAbandonedWorks|.
     void reportAbandonedWorks();
     // Make onError call to listener for reporting errors.
-    void reportError(c2_status_t error);
+    void reportError(c2_status_t error, bool isVendorExtError = false);
     // Helper function to determine if the work indicates no-show output frame.
     bool isNoShowFrameWork(const C2Work& work, const C2WorkOrdinalStruct& currOrdinal) const;
     // Helper function to determine if the work is finished.

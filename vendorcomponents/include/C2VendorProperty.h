@@ -117,4 +117,8 @@
 /* hdr10plus sys node */
 #define SYS_CLASS_HDR10PLUS_ENABLE                  "/sys/class/amvecm/enable_hdr10plus"
 
+/* For vendor extension error report */
+#define C2_PROPERTY_USE_VENDOR_EXT_ERROR            "vendor.media.c2.use_vendor_ext_error"
+#define C2_PROPERTY_VENDOR_EXT_ERROR_MASK           "vendor.media.c2.vendor_ext_error_mask"
+#define C2_PROPERTY_PROXY_MESSAGE_TYPES             "vendor.media.c2.proxy_message_types"
 #endif

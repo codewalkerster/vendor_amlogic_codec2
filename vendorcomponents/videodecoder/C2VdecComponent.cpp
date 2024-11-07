@@ -3776,7 +3776,7 @@ void C2VdecComponent::reportAbandonedWorks() {
     }
 }
 
-void C2VdecComponent::reportError(c2_status_t error) {
+void C2VdecComponent::reportError(c2_status_t error, bool isVendorExtError) {
     DCHECK(mTaskRunner->BelongsToCurrentThread());
     ALOGV("reportError");
     if (mComponentState == ComponentState::DESTROYING ||
@@ -3786,6 +3786,10 @@ void C2VdecComponent::reportError(c2_status_t error) {
         return;
     }
     mListener->onError_nb(shared_from_this(), static_cast<uint32_t>(error));
+    if (isVendorExtError) {
+        // Vendor extension error, do not change component state.
+        return;
+    }
     updateComponentState(mComponentState, true);
     mState.store(State::ERROR);
 }

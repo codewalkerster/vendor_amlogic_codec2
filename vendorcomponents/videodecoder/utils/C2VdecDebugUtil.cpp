@@ -42,6 +42,9 @@
 
 #include "base/memory/weak_ptr.h"
 
+#include "AmlVideoUserdata.h"
+#include "AmlMediaProxyConsumer.h"
+
 #define DUMP_PROCESS_FDINFO_ENABLE (0)
 #ifndef UNUSED
 #define UNUSED(x) (void)(x)
@@ -49,6 +52,7 @@
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define ERROR_VENDOR_START_UNUSED 0x90000000
 
 using namespace std;
 using namespace android;
@@ -57,7 +61,7 @@ namespace android {
 
 #define C2VdecDU_LOG(level, fmt, str...) CODEC2_LOG(level, "[%d##%d]"#fmt, comp->mSessionID, comp->mDecoderID, ##str)
 
-C2VdecComponent::DebugUtil::DebugUtil():mWeakFactory(this) {
+C2VdecComponent::DebugUtil::DebugUtil():mWeakFactory(this), mMediaProxyConsumer(nullptr) {
     propGetInt(CODEC2_VDEC_LOGDEBUG_PROPERTY, &gloglevel);
     CODEC2_LOG(CODEC2_LOG_INFO, "[%s:%d]", __func__, __LINE__);
     mServer = &C2DebugServer::getInstance();
@@ -185,8 +189,67 @@ void C2VdecComponent::DebugUtil::debug(std::list<std::string> cmds) {
 
 }
 
+void onProxyConsumerUserData(void *instance, const struct aml_video_user_data& data) {
+    C2VdecComponent::DebugUtil* util = (C2VdecComponent::DebugUtil*)instance;
+    uint32_t messageType = data.message_type;
+    if (messageType == MEDIA_VIDEO_ERROR_EVENT) {
+        uint32_t error = data.data.error_info.error_event;
+        ALOGD("Received error:%08x", error);
+        util->reportVendorExtError(error);
+    /*
+    } else if (messageType == MEDIA_VIDEO_STATISTIC_INFO) {
+        uint32_t decoderId = data.data.statisticsInfo.decoderId;
+        uint32_t decodedFrames = data.data.statisticsInfo.decodedFrames;
+        uint32_t errFrames = data.data.statisticsInfo.errFrames;
+        uint32_t dropFrames = data.data.statisticsInfo.dropFrames;
+        ALOGD("Received statistics from decoder:%d, decodedFrames:%d, errFrames:%d, dropFrames:%d",
+              decoderId, decodedFrames, errFrames, dropFrames);
+        server->notifyStats(decoderId, decodedFrames, errFrames, dropFrames);
+    } else if (messageType == MEDIA_VIDEO_INPUT_INFO) {
+        uint32_t decoderId = data.data.inputInfo.decoderId;
+        uint64_t bitStreamId = data.data.inputInfo.bitStreamId;
+        uint64_t timestamp = data.data.inputInfo.timestamp;
+        uint32_t dataSize = data.data.inputInfo.dataSize;
+        ALOGD("Received input from decoder:%d, bitStreamId:%llu, timestamp:%llu, dataSize:%d",
+              decoderId, bitStreamId, timestamp, dataSize);
+        server->notifyInput(decoderId, bitStreamId, timestamp, dataSize);
+    } else if (messageType == MEDIA_VIDEO_OUTPUT_INFO) {
+        uint32_t decoderId = data.data.outputInfo.decoderId;
+        uint64_t bitStreamId = data.data.outputInfo.bitStreamId;
+        uint64_t timestamp = data.data.outputInfo.timestamp;
+        uint32_t pictureBufferId = data.data.outputInfo.pictureBufferId;
+        ALOGD("Received output from decoder:%d, bitStreamId:%llu, timestamp:%llu, pictureBufferId:%d",
+              decoderId, bitStreamId, timestamp, pictureBufferId);
+        server->notifyOutput(decoderId, bitStreamId, timestamp, pictureBufferId);
+    } else if (messageType == MEDIA_VIDEO_FIRST_OUT_FRAME_INFO) {
+        uint32_t decoderId = data.data.firstFrameInfo.decoderId;
+        uint32_t width = data.data.firstFrameInfo.res.width;
+        uint32_t color_primaries = data.data.firstFrameInfo.hdr.color_primaries;
+        uint32_t matrix_coeff = data.data.firstFrameInfo.hdr.matrix_coeff;
+        ALOGD("Received first frame from decoder:%d, width:%d, color_primaries:%d, matrix_coeff:%d",
+              decoderId, width, color_primaries, matrix_coeff);
+        server->notifyFirstFrame(decoderId, width, data.data.firstFrameInfo.res.height, color_primaries, matrix_coeff, data.data.firstFrameInfo.afd_data);
+    } else if (messageType == MEDIA_VDEC_CONNECTED) {
+        uint32_t decoderId = data.data.connInfo.decoderId;
+        bool vdecConnect = data.data.connInfo.vdecConnect;
+        ALOGD("Received vdec connected from decoder:%d, vdecConnect:%d", decoderId, vdecConnect);
+        server->notifyConnected(decoderId, vdecConnect);
+    */
+    } else {
+        ALOGE("Unknown message type:%d", messageType);
+    }
+}
+
 void C2VdecComponent::DebugUtil::ctor() {
     mCreatedAt = getNowUs();
+    mUseVendorExtError = property_get_bool(C2_PROPERTY_USE_VENDOR_EXT_ERROR, false);
+    mVendorExtErrorMask = (uint32_t)property_get_int32(C2_PROPERTY_VENDOR_EXT_ERROR_MASK, 0xfff);
+    if (mUseVendorExtError) {
+        mMediaProxyMessageTypes = (uint32_t) property_get_int32(C2_PROPERTY_PROXY_MESSAGE_TYPES, MEDIA_VIDEO_ERROR_EVENT);
+        mMediaProxyConsumer = new MediaProxyConsumer(onProxyConsumerUserData, (void*)this, mMediaProxyMessageTypes);
+    } else {
+        mMediaProxyConsumer = nullptr;
+    }
 }
 
 void C2VdecComponent::DebugUtil::start() {
@@ -199,6 +262,10 @@ void C2VdecComponent::DebugUtil::stop() {
 
 void C2VdecComponent::DebugUtil::dtor() {
     mDestroyedAt = getNowUs();
+    if (mMediaProxyConsumer != nullptr) {
+        delete mMediaProxyConsumer;
+        mMediaProxyConsumer = nullptr;
+    }
 }
 
 void C2VdecComponent::DebugUtil::emptyBuffer(void* buffHdr, int64_t timestamp, uint32_t flags, uint32_t size) {
@@ -231,6 +298,15 @@ void C2VdecComponent::DebugUtil::fillBufferDone(void *buffHdr, uint32_t flags, u
     UNUSED(pictureBufferId);
     if (pictureBufferId != -1 && bitstreamId != -1) {
         mOutputQtyStats->put(timestamp);
+    }
+}
+
+void C2VdecComponent::DebugUtil::reportVendorExtError(int32_t error) {
+    LockWeakPtrWithReturnVoid(comp, mComp);
+    error &= mVendorExtErrorMask;
+    if (error != 0) {
+        error += ERROR_VENDOR_START_UNUSED;
+        comp->reportError((c2_status_t)error, true);
     }
 }
 

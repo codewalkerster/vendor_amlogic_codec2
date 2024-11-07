@@ -45,6 +45,7 @@ cc_library_shared {
         "utils/C2VdecTunerPassthroughHelper.cpp",
         "utils/C2VdecDebugUtil.cpp",
         "utils/C2VdecDequeueThreadUtil.cpp",
+        "utils/AmlMediaProxyConsumer.cpp",
     ],
 
     local_include_dirs: [
