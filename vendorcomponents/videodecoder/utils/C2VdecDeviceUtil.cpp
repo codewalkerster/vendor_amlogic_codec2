@@ -501,7 +501,11 @@ void C2VdecComponent::DeviceUtil::codecConfig(mediahal_cfg_parms* configParam) {
 
     if (lowLatency.value) {
         C2VdecMDU_LOG(CODEC2_LOG_INFO, "Config low latency mode to v4l2 decoder.");
-        pAmlDecParam->cfg.low_latency_mode |= (LOWLATENCY_NORMAL|LOWLATENCY_FENCE|LOWLATENCY_DISPLAY);
+        if (mUseSurfaceTexture || mNoSurface) {
+            pAmlDecParam->cfg.low_latency_mode |= (LOWLATENCY_NORMAL);
+        } else {
+            pAmlDecParam->cfg.low_latency_mode |= (LOWLATENCY_NORMAL|LOWLATENCY_FENCE|LOWLATENCY_DISPLAY);
+        }
         mUseLowLatencyMode = true;
         mEnableNR = false;
         mEnableDILocalBuf = false;
@@ -516,7 +520,11 @@ void C2VdecComponent::DeviceUtil::codecConfig(mediahal_cfg_parms* configParam) {
 
     if (intfImpl->mVendorGameModeLatency->enable) {
         C2VdecMDU_LOG(CODEC2_LOG_INFO, "Config game latency mode to v4l2 decoder.");
-        pAmlDecParam->cfg.low_latency_mode |= (LOWLATENCY_NORMAL|LOWLATENCY_FENCE|LOWLATENCY_DISPLAY);
+        if (mUseSurfaceTexture || mNoSurface) {
+            pAmlDecParam->cfg.low_latency_mode |= (LOWLATENCY_NORMAL);
+        } else {
+            pAmlDecParam->cfg.low_latency_mode |= (LOWLATENCY_NORMAL|LOWLATENCY_FENCE|LOWLATENCY_DISPLAY);
+        }
         mUseLowLatencyMode = true;
         mEnableNR = false;
         mEnableDILocalBuf = false;
