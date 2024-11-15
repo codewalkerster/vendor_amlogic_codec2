@@ -48,6 +48,8 @@ enum C2AmlParamIndexKind : C2Param::type_index_t {
     kParamIndexVendorTunerPassthroughTransitionPrerollRate,
     kParamIndexVendorTunerPassthroughTransitionPrerollAVTolerance,
     kParamIndexVendorTunerPassthroughPlaybackStatus,
+    kParamIndexVendorScreenFreezeMode,
+
     /*these are Audio Decoder config parameters.*/
     kParamIndexVendorAdecCodecId = C2Param:: TYPE_INDEX_VENDOR_START + 0x200,
     kParamIndexVendorAdecExtraDataSize,
@@ -322,6 +324,21 @@ constexpr char KEY_VENDOR_AVC_4K_MMU[] = "vendor.vdec.avc-4k-mmu.value";
 typedef C2PortParam<C2Setting, C2Int32Value, kParamIndexVendorErrorPolicy> C2ErrorPolicy;
 constexpr char C2_PARAMKEY_VENDOR_ERROR_POLICY[] = "vdec.error-policy";
 constexpr char KEY_VENDOR_ERROR_POLICY[] = "vendor.vdec.error-policy.value";
+
+
+
+struct C2VendorScreenFreezeModeStruct {
+    inline C2VendorScreenFreezeModeStruct() = default;
+    inline C2VendorScreenFreezeModeStruct(int32_t val) : enable(val) {}
+    int32_t enable;
+    DEFINE_AND_DESCRIBE_C2STRUCT(VendorScreenFreezeMode)
+    C2FIELD(enable, "enable")
+};
+
+typedef C2PortParam<C2Setting, C2VendorScreenFreezeModeStruct, kParamIndexVendorScreenFreezeMode> C2ScreenFreezeMode;
+constexpr char C2_PARAMKEY_VENDOR_SCALING_FREEZE_MODE[] = "scaling-freeze-mode";
+constexpr char KEY_VENDOR_SCALING_FREEZE_MODE[] = "vendor.scaling-freeze-mode.enable";
+
 
 /* ================================ Audio Config Parameter ================================ */
 typedef C2PortParam<C2Setting, C2Int32Value, kParamIndexVendorAdecCodecId> C2SdkCodecId;

@@ -46,6 +46,7 @@
 #define min(a, b) (((a) > (b))? (b):(a))
 #define IS_MMU_DW(dw) (dw != 0x10)
 #define FIXED_540P_HEIGHT (576)
+#define ANDROID_SCREEN_FREEZE_MODE 1
 
 
 namespace android {
@@ -349,6 +350,23 @@ void C2VdecComponent::DeviceUtil::queryStreamBitDepth() {
 
     if (msg != NULL)
         delete msg;
+}
+
+void C2VdecComponent::DeviceUtil::configScreenFreezeMode() {
+    CODEC2_LOG(CODEC2_LOG_INFO, "set screen freeze mode to decoder");
+    LockWeakPtrWithReturnVoid(comp, mComp);
+    mVideoDecWraper = comp->getCompVideoDecWraper();
+    LockWeakPtrWithReturnVoid(wraper, mVideoDecWraper);
+
+    AmlMessageBase *msg = VideoDecWraper::AmVideoDec_getAmlMessage();
+    if (msg != NULL) {
+        msg->setInt32("screenmode", ANDROID_SCREEN_FREEZE_MODE);
+        wraper->postAndReplyMsg(msg);
+    }
+    if (msg != NULL)
+        delete msg;
+
+
 }
 
 uint32_t C2VdecComponent::DeviceUtil::getStreamPixelFormat(uint32_t pixelFormat) {

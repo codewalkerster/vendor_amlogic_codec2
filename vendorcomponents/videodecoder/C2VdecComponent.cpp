@@ -3251,6 +3251,9 @@ void C2VdecComponent::ProvidePictureBuffers(uint32_t minNumBuffers, uint32_t wid
 
     mDeviceUtil->queryStreamBitDepth();
     mDeviceUtil->checkUseP010Mode();
+    if (mIntfImpl->mVideoScreenFreezeMode->enable) {
+        mDeviceUtil->configScreenFreezeMode();
+    }
 
     if (mDeviceUtil->needAllocWithMaxSize(width, height)) {
         mDeviceUtil->getMaxBufWidthAndHeight(max_width, max_height);

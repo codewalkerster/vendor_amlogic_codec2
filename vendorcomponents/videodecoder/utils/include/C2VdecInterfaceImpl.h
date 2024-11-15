@@ -96,6 +96,7 @@ private:
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollRate::input, VendorTunerPassthroughTransitionPrerollRate);
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollAVTolerance::input, VendorTunerPassthroughTransitionPrerollAVTolerance);
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughPlaybackStatus::input, VendorTunerPassthroughPlaybackStatus);
+    DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2ScreenFreezeMode::input, VendorScreenFreezeMode);
 
     std::shared_ptr<C2ApiLevelSetting> mApiLevel;
     std::shared_ptr<C2ApiFeaturesSetting> mApiFeatures;
@@ -193,6 +194,7 @@ private:
     std::shared_ptr<C2VendorGameModeLatency::input> mVendorGameModeLatency;
     std::shared_ptr<C2StreamPixelFormatInfo::output> mPixelFormatInfo;
     std::shared_ptr<C2ErrorPolicy::input> mErrorPolicy;
+    std::shared_ptr<C2ScreenFreezeMode::input> mVideoScreenFreezeMode;
 
     c2_status_t mInitStatus;
     media::VideoCodecProfile mCodecProfile;

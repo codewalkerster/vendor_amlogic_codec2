@@ -370,7 +370,7 @@ void C2Imagedec::process(
     uint32_t workIndex = work->input.ordinal.frameIndex.peeku() & 0xFFFFFFFF;
     C2ReadView rView = mDummyReadView;
     if (!work->input.buffers.empty()) {
-        ALOGE("img: input is not empty %d-size %d",workIndex,work->input.buffers.size());
+        ALOGE("img: input is not empty %d-size %zu",workIndex,work->input.buffers.size());
         rView = work->input.buffers[0]->data().linearBlocks().front().map().get();
         inSize = rView.capacity();
         if (inSize && rView.error()) {

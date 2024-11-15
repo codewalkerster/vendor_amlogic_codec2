@@ -139,6 +139,7 @@ public:
 
     bool checkConfigInfoFromDecoderAndReconfig(int type);
     uint32_t checkUseP010Mode(); /* 10bit */
+    void configScreenFreezeMode();
 
     void setGameMode(bool enable);
     bool isLowLatencyMode();

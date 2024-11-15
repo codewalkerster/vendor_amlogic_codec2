@@ -207,6 +207,7 @@ DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionModeAfter::i
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollRate::input, VendorTunerPassthroughTransitionPrerollRate)
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollAVTolerance::input, VendorTunerPassthroughTransitionPrerollAVTolerance)
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughPlaybackStatus::input, VendorTunerPassthroughPlaybackStatus)
+DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2ScreenFreezeMode::input, VendorScreenFreezeMode)
 
 c2_status_t C2VdecComponent::IntfImpl::config(
     const std::vector<C2Param*> &params, c2_blocking_t mayBlock,
@@ -1634,6 +1635,13 @@ void C2VdecComponent::IntfImpl::onVendorExtendParam() {
             .withDefault(new C2ErrorPolicy::input(1))
             .withFields({C2F(mErrorPolicy, value).any()})
     .withSetter(Setter<decltype(*mErrorPolicy)>::StrictValueWithNoDeps)
+    .build());
+
+    addParameter(
+        DefineParam(mVideoScreenFreezeMode, C2_PARAMKEY_VENDOR_SCALING_FREEZE_MODE)
+            .withDefault(new C2ScreenFreezeMode::input(0))
+            .withFields({C2F(mVideoScreenFreezeMode, enable).any()})
+    .withSetter(C2_DEFAULT_UNSTRICT_SETTER(VendorScreenFreezeMode))
     .build());
 }
 
