@@ -32,7 +32,7 @@
 
 class AmVideoCodec;
 namespace android {
-
+#define ALIGN2(x)                      ((((x) + 1) >> 1) << 1)
 #define ALIGN16(x)                      ((((x) + 15) >> 4) << 4)
 #define ALIGN32(x)                      ((((x) + 31) >> 5) << 5)
 #define ALIGN64(x)                      ((((x) + 63) >> 6) << 6)

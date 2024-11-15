@@ -946,7 +946,7 @@ bool C2SoftImageComponent::processQueue() {
         work = queue->pop_front();
         hasQueuedWork = !queue->empty();
     }
-    CODEC2_LOG(CODEC2_LOG_INFO, "isFlushPending");
+    CODEC2_LOG(CODEC2_LOG_INFO, "isFlushPending%d",hasQueuedWork);
     if (isFlushPending) {
         CODEC2_LOG(CODEC2_LOG_INFO, "Processing pending flush");
         c2_status_t err = onFlush_sm();
@@ -1062,6 +1062,9 @@ bool C2SoftImageComponent::processQueue() {
         work->input.buffers.clear();
     }
     process(work, mOutputBlockPool, mPlatformUsage);
+    if (work->result != C2_OK) {
+        return hasQueuedWork;
+    }
     CODEC2_LOG(CODEC2_LOG_INFO, "Processed frame #%" PRIu64, work->input.ordinal.frameIndex.peeku());
     Mutexed<WorkQueue>::Locked queue(mWorkQueue);
     if (queue->generation() != generation) {
@@ -1083,6 +1086,7 @@ bool C2SoftImageComponent::processQueue() {
         std::shared_ptr<C2Component::Listener> listener = state->mListener;
         state.unlock();
         listener->onWorkDone_nb(shared_from_this(), vec(work));
+
     } else {
         CODEC2_LOG(CODEC2_LOG_INFO, "Queue pending work");
         work->input.buffers.clear();

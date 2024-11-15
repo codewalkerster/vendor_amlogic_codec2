@@ -323,10 +323,10 @@ void C2Imagedec::finishWork(uint64_t index, const std::unique_ptr<C2Work> &work)
 
 c2_status_t C2Imagedec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool, uint64_t platformUsage) {
     if (mOutBlock &&
-            (mOutBlock->width() != ALIGN64(mWidth) || mOutBlock->height() != mHeight)) {
+            (mOutBlock->width() != ALIGN64(mWidth) || mOutBlock->height() != ALIGN2(mHeight))) {
         mOutBlock.reset();
     }
-    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL1, "Start fetchGraphicBlock, Required (%dx%d)", ALIGN64(mWidth), mHeight);
+    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL1, "Start fetchGraphicBlock, Required (%dx%d)", ALIGN64(mWidth), ALIGN2(mHeight));
     if (!mOutBlock) {
         uint32_t format = HAL_PIXEL_FORMAT_YV12;
         C2MemoryUsage usage = { C2MemoryUsage::CPU_READ, C2MemoryUsage::CPU_WRITE };
@@ -335,13 +335,13 @@ c2_status_t C2Imagedec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &p
             usage = { (C2MemoryUsage::CPU_READ | C2MemoryUsage::CPU_WRITE), platformUsage };
         }
         c2_status_t err =
-            pool->fetchGraphicBlock(ALIGN64(mWidth), mHeight, format, usage, &mOutBlock);
+            pool->fetchGraphicBlock(ALIGN64(mWidth), ALIGN2(mHeight), format, usage, &mOutBlock);
         if (err != C2_OK) {
             CODEC2_LOG(CODEC2_LOG_ERR, "FetchGraphicBlock for Output failed with status %d", err);
             return err;
         }
         CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL1, "FetchGraphicBlock done, Provided (%dx%d) Required (%dx%d)",
-              mOutBlock->width(), mOutBlock->height(), ALIGN64(mWidth), mHeight);
+              mOutBlock->width(), mOutBlock->height(), ALIGN64(mWidth), ALIGN2(mHeight));
     }
     return C2_OK;
 }
@@ -361,10 +361,6 @@ void C2Imagedec::process(
     work->workletsProcessed = 0u;
     work->worklets.front()->output.configUpdate.clear();
     work->worklets.front()->output.flags = work->input.flags;
-    if (mSignaledError || mSignaledOutputEos) {
-        work->result = C2_BAD_VALUE;
-        return;
-    }
 
     size_t inSize = 0u;
     uint32_t workIndex = work->input.ordinal.frameIndex.peeku() & 0xFFFFFFFF;
@@ -433,11 +429,9 @@ void C2Imagedec::process(
             return;
         }else {
             ALOGE("img enter %dx%d", width, height);
-           // width = ALIGN64(width);
         }
         if (width > mMXWidth || height > mMXWidth) {
             mSignaledError = true;
-            work->workletsProcessed = 1u;
             work->result = C2_BAD_VALUE;
             return;
         }
@@ -446,7 +440,6 @@ void C2Imagedec::process(
         mHeight = height;
         if (C2_OK != ensureDecoderState(pool, platformUsage)) {
             mSignaledError = true;
-            work->workletsProcessed = 1u;
             work->result = C2_BAD_VALUE;
             return;
         }
