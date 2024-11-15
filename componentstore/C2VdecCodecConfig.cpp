@@ -29,6 +29,7 @@
 #include <C2VendorSoftVideoSupport.h>
 #include <C2VendorAudioSupport.h>
 #include <C2VendorImgSupport.h>
+#include <SystemControlClient.h>
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -778,5 +779,24 @@ c2_status_t C2VdecCodecConfig::isCodecSupportResolutionRatio(InputCodec codec, b
     return ret;
 }
 
+bool C2VdecCodecConfig::isCodecSupportHdr10Plus() {
+    static SystemControlClient *sc = SystemControlClient::getInstance();
+    std::string enable;
+    bool supportHdr10Plus = true;
+
+    bool ret = sc->readSysfs(SYS_CLASS_HDR10PLUS_ENABLE, enable);
+    if (ret == false) {
+        CODEC2_LOG(CODEC2_LOG_INFO, "read [%s] error hdr10:true default", SYS_CLASS_HDR10PLUS_ENABLE);
+        return supportHdr10Plus;
+    }
+
+    if (enable.compare(0, 1, "1") == 0) {
+        supportHdr10Plus = true;
+    } else {
+        supportHdr10Plus = false;
+    }
+    CODEC2_LOG(CODEC2_LOG_INFO, "isCodecSupportHdr10Plus hdr10:(%s)", enable.c_str());
+    return supportHdr10Plus;
+}
 
 }

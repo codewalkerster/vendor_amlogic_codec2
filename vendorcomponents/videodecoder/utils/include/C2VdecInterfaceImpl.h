@@ -208,6 +208,7 @@ private:
     bool mSecureMode;
     bool mIsSupport4k;
     bool mIsSupportHdr;
+    bool mSupportHdr10Plus;
     friend C2VdecComponent;
 
     // Declare the format configuration parameters according to different formats.

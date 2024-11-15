@@ -326,7 +326,7 @@ c2_status_t C2VdecComponent::IntfImpl::config(
 }
 
 void C2VdecComponent::IntfImpl::getHdr10PlusBuf(uint8_t** pbuf, uint32_t* plen) {
-    if (pbuf == NULL || plen == NULL) {
+    if (pbuf == NULL || plen == NULL || !mSupportHdr10Plus) {
         return;
     }
     *pbuf = mHdrDynamicInfoInput->m.data;
@@ -334,7 +334,8 @@ void C2VdecComponent::IntfImpl::getHdr10PlusBuf(uint8_t** pbuf, uint32_t* plen) 
 }
 
 void C2VdecComponent::IntfImpl::updateHdr10PlusInfoToWork(C2Work& work) {
-    work.worklets.front()->output.configUpdate.push_back(C2Param::Copy(*mHdrDynamicInfoOutput.get()));
+    if (mSupportHdr10Plus)
+        work.worklets.front()->output.configUpdate.push_back(C2Param::Copy(*mHdrDynamicInfoOutput.get()));
 }
 
 void C2VdecComponent::IntfImpl::updateInputCodec(InputCodec videotype) {
@@ -358,6 +359,7 @@ C2VdecComponent::IntfImpl::IntfImpl(C2String name, const std::shared_ptr<C2Refle
     mSecureMode = name.find(".secure") != std::string::npos;
     mIsSupport4k = C2VdecCodecConfig::getInstance().isCodecSupport4k(mVendorCodec, mSecureMode);
     mIsSupportHdr = property_get_bool(PROPERTY_PLATFORM_SUPPORT_HDR, true);
+    mSupportHdr10Plus = C2VdecCodecConfig::getInstance().isCodecSupportHdr10Plus();
     //profile and level
     switch (mInputCodec) {
         case InputCodec::H264:
@@ -1041,22 +1043,27 @@ void C2VdecComponent::IntfImpl::onH266DeclareParam() {
 }
 
 void C2VdecComponent::IntfImpl::onHdrDeclareParam(const std::shared_ptr<C2ReflectorHelper>& helper) {
-    mHdrDynamicInfoInput = C2StreamHdrDynamicMetadataInfo::input::AllocShared(0);
-    addParameter(
-        DefineParam(mHdrDynamicInfoInput, C2_PARAMKEY_INPUT_HDR_DYNAMIC_INFO)
-            .withDefault(mHdrDynamicInfoInput)
-            .withFields({C2F(mHdrDynamicInfoInput, m.data).any(),})
-    .withSetter(HdrDynamicInfoInputSetter)
-    .build());
 
-    mHdrDynamicInfoOutput = C2StreamHdrDynamicMetadataInfo::output::AllocShared(0);
+    CODEC2_LOG(CODEC2_LOG_INFO, "[%s:%d] mSupportHdr10Plus %d ",
+                    __func__, __LINE__, mSupportHdr10Plus);
+    if (mSupportHdr10Plus) {
+        mHdrDynamicInfoInput = C2StreamHdrDynamicMetadataInfo::input::AllocShared(0);
+        addParameter(
+            DefineParam(mHdrDynamicInfoInput, C2_PARAMKEY_INPUT_HDR_DYNAMIC_INFO)
+                .withDefault(mHdrDynamicInfoInput)
+                .withFields({C2F(mHdrDynamicInfoInput, m.data).any(),})
+        .withSetter(HdrDynamicInfoInputSetter)
+        .build());
 
-    addParameter(
-        DefineParam(mHdrDynamicInfoOutput, C2_PARAMKEY_OUTPUT_HDR_DYNAMIC_INFO)
-            .withDefault(mHdrDynamicInfoOutput)
-            .withFields({C2F(mHdrDynamicInfoOutput, m.data).any(),})
-    .withSetter(HdrDynamicInfoOutputSetter)
-    .build());
+        mHdrDynamicInfoOutput = C2StreamHdrDynamicMetadataInfo::output::AllocShared(0);
+
+        addParameter(
+            DefineParam(mHdrDynamicInfoOutput, C2_PARAMKEY_OUTPUT_HDR_DYNAMIC_INFO)
+                .withDefault(mHdrDynamicInfoOutput)
+                .withFields({C2F(mHdrDynamicInfoOutput, m.data).any(),})
+        .withSetter(HdrDynamicInfoOutputSetter)
+        .build());
+    }
 
     // sample BT.2020 static info
     mHdrStaticInfo = std::make_shared<C2StreamHdrStaticInfo::output>();

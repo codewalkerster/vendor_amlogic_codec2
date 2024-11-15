@@ -63,7 +63,7 @@ constexpr int kMaxHeightP010 = 576;
 C2VdecComponent::DeviceUtil::DeviceUtil(bool secure) {
     propGetInt(CODEC2_VDEC_LOGDEBUG_PROPERTY, &gloglevel);
     init(secure);
-    CODEC2_LOG(CODEC2_LOG_INFO, "[%s:%d]", __func__, __LINE__);
+    CODEC2_LOG(CODEC2_LOG_INFO, "[%s:%d]mSupportHdr10Plus:%d", __func__, __LINE__, mSupportHdr10Plus);
 }
 
 C2VdecComponent::DeviceUtil::~DeviceUtil() {
@@ -93,6 +93,10 @@ void C2VdecComponent::DeviceUtil::init(bool secure) {
     mIsNeedUse10BitOutBuffer = false;
     mHwSupportP010 = property_get_bool(PROPERTY_PLATFORM_SUPPORT_HARDWARE_P010, false);
     mSwSupportP010 = property_get_bool(PROPERTY_PLATFORM_SUPPORT_SOFTWARE_P010, true);
+
+    mSupportHdr10Plus = C2VdecCodecConfig::getInstance().isCodecSupportHdr10Plus();
+    mHdr10PlusReportError = property_get_bool(C2_PROPERTY_VDEC_HDR10PLUS_REPORTERROR, false);
+    mUseP010ForDisplay = false;
 
     mDiPost = property_get_bool(C2_PROPERTY_VDEC_DI_POST, false);
     // 8K
@@ -1606,16 +1610,13 @@ void C2VdecComponent::DeviceUtil::updateHDR10plusToWork(unsigned char *data, int
     LockWeakPtrWithReturnVoid(intfImpl, mIntfImpl);
     C2VdecMDU_LOG(CODEC2_LOG_DEBUG_LEVEL2, "update Decoder HDR10+ info timestap:%lld size:%d data:",
                                 (unsigned long long)work.input.ordinal.customOrdinal.peekull(), size);
-    static bool support_hdr10plus = property_get_bool(PROPERTY_PLATFORM_SUPPORT_HDR10PLUS, true);
-    static bool hdr10plus_report_error = property_get_bool(C2_PROPERTY_VDEC_HDR10PLUS_REPORTERROR, false);
 
-    if (!support_hdr10plus) {
-        if (hdr10plus_report_error) {
+    if (!mSupportHdr10Plus) {
+        if (mHdr10PlusReportError) {
             // if platform not support hdr10plus video, report error
             C2VdecMDU_LOG(CODEC2_LOG_ERR, "[%s#%d] got hdr10p info, platform not support hdr10+, report error", __func__, __LINE__);
             comp->reportError(C2_CORRUPTED);
         }
-
         return;
     }
 
@@ -1837,6 +1838,7 @@ void C2VdecComponent::DeviceUtil::setGameMode(bool enable) {
         sc->setMemcMode(mMemcMode, 0);
     }
 }
+
 void C2VdecComponent::DeviceUtil::setSkipReallocBufMode(bool enable) {
     static SystemControlClient *sc = SystemControlClient::getInstance();
 

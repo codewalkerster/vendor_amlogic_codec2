@@ -81,6 +81,7 @@ cc_library_shared {
         "libcutils",
         "libvendor_c2common",
         "libstagefright_xmlparser",
+        "libsystemcontrolservice",
     ],
 
     static_libs: ["libjsoncpp"],

@@ -176,7 +176,11 @@ private:
     bool mIsYcbRP010Stream;
     bool mHwSupportP010;
     bool mSwSupportP010;
+    bool mUseP010ForDisplay;
 
+    //hdr10+
+    bool mSupportHdr10Plus;
+    bool mHdr10PlusReportError;
     //di post
     bool needDecoderReplaceBufferForDiPost();
     bool isUseVdecCore();

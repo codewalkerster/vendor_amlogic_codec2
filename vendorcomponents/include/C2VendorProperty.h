@@ -107,11 +107,14 @@
 #define PROPERTY_PLATFORM_SUPPORT_HDR               "ro.vendor.platform.support.hdr"
 #define PROPERTY_PLATFORM_SUPPORT_HDR10PLUS         "ro.vendor.platform.support.hdr10plus"
 
+
 /* vdec property set */
 #define C2_PROPERTY_COMMON_LOWLATENCY_MODE          "vendor.media.llp"
 
 /* For lowpower disable video*/
 #define C2_PROPERTY_COMMON_LOWPOWER                 "vendor.media.video.lowpower"
 
+/* hdr10plus sys node */
+#define SYS_CLASS_HDR10PLUS_ENABLE                  "/sys/class/amvecm/enable_hdr10plus"
 
 #endif
