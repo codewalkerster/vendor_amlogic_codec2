@@ -228,4 +228,28 @@ bool VideoTunnelRendererWraper::sendVideoFrame(renderframe* frame) {
     return true;
 }
 
+bool VideoTunnelRendererWraper::pushBlankBuffersOnShutdownInTunnel(int32_t value) {
+    AmlMessageBase* msg = VideoTunnelRenderer_getAmlMessage();
+    if (msg == NULL) {
+        CODEC2_LOG(CODEC2_LOG_ERR, "%s msg == NULL",__func__);
+        return false;
+    }
+    msg->setInt32("pushBlankBuffersOnShutdownInTunnel", value);
+    postAndReplyMsg(msg);
+    delete msg;
+    return true;
+}
+
+bool VideoTunnelRendererWraper::setSolidBlackColor(int32_t value) {
+    AmlMessageBase* msg = VideoTunnelRenderer_getAmlMessage();
+    if (msg == NULL) {
+        CODEC2_LOG(CODEC2_LOG_ERR, "%s msg == NULL",__func__);
+        return false;
+    }
+    msg->setInt32("solidBlackColor", value);
+    postAndReplyMsg(msg);
+    delete msg;
+    return true;
+}
+
 }

@@ -54,6 +54,8 @@ public:
     void configureEsModeHwAvsyncId(int32_t            avSyncId);
     void videoSyncQueueVideoFrame(int64_t timestampUs, uint32_t size);
     bool setPlayerInfo(playerInfo* info);
+    bool pushBlankBuffersOnShutdownInTunnel(int32_t value);
+    bool setSolidBlackColor(int32_t value);
 
 private:
     static int fillVideoFrameCallback2(void* obj, void* args);

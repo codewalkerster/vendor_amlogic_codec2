@@ -208,6 +208,8 @@ DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollRate:
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollAVTolerance::input, VendorTunerPassthroughTransitionPrerollAVTolerance)
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughPlaybackStatus::input, VendorTunerPassthroughPlaybackStatus)
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2ScreenFreezeMode::input, VendorScreenFreezeMode)
+DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2PushBlankBuffersOnShutdownInTunnel::input, VendorPushBlankBuffersOnShutdownInTunnel);
+DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2SetSolidBlackColor::input, VendorSetSolidBlackColor);
 
 c2_status_t C2VdecComponent::IntfImpl::config(
     const std::vector<C2Param*> &params, c2_blocking_t mayBlock,
@@ -309,6 +311,12 @@ c2_status_t C2VdecComponent::IntfImpl::config(
                 break;
             case C2ErrorPolicy::CORE_INDEX:
                 onErrorPolicyConfigParam();
+                break;
+            case C2PushBlankBuffersOnShutdownInTunnel::CORE_INDEX:
+                onPushBlankBuffersOnShutdownInTunnelConfigParam();
+                break;
+            case C2SetSolidBlackColor::CORE_INDEX:
+                onSetSolidBlackColor();
                 break;
             default:
                 break;
@@ -1643,6 +1651,20 @@ void C2VdecComponent::IntfImpl::onVendorExtendParam() {
             .withFields({C2F(mVideoScreenFreezeMode, enable).any()})
     .withSetter(C2_DEFAULT_UNSTRICT_SETTER(VendorScreenFreezeMode))
     .build());
+
+    addParameter(
+        DefineParam(mPushBlankBuffersOnShutdownInTunnel, C2_PARAMKEY_VENDOR_PUSH_BLANK_BUFFERS_ON_SHUTDOWN)
+            .withDefault(new C2PushBlankBuffersOnShutdownInTunnel::input(0))
+            .withFields({C2F(mPushBlankBuffersOnShutdownInTunnel, value).any()})
+            .withSetter(C2_DEFAULT_UNSTRICT_SETTER(VendorPushBlankBuffersOnShutdownInTunnel))
+    .build());
+
+    addParameter(
+        DefineParam(mSetSolidBlackColor, C2_PARAMKEY_VENDOR_SET_SOLID_BLACK_COLOR)
+            .withDefault(new C2SetSolidBlackColor::input(0))
+            .withFields({C2F(mSetSolidBlackColor, value).any()})
+            .withSetter(C2_DEFAULT_UNSTRICT_SETTER(VendorSetSolidBlackColor))
+    .build());
 }
 
 void C2VdecComponent::IntfImpl::onAvc4kMMUEnable() {
@@ -1843,6 +1865,19 @@ void C2VdecComponent::IntfImpl::onNetflixVPeekConfigParam() {
 void C2VdecComponent::IntfImpl::onErrorPolicyConfigParam() {
     CODEC2_LOG(CODEC2_LOG_INFO, "[%d##%d] config error policy :%d",
                         mComponent->mSessionID, mComponent->mDecoderID, mErrorPolicy->value);
+}
+
+
+void C2VdecComponent::IntfImpl::onPushBlankBuffersOnShutdownInTunnelConfigParam() {
+    CODEC2_LOG(CODEC2_LOG_INFO, "[%d##%d] config push blank buffers on shutdown in tunnel value:%d",
+                        mComponent->mSessionID, mComponent->mDecoderID, mPushBlankBuffersOnShutdownInTunnel->value);
+    mComponent->onConfigurePushBlankBuffersOnShutdownInTunnel(mPushBlankBuffersOnShutdownInTunnel->value);
+}
+
+void C2VdecComponent::IntfImpl::onSetSolidBlackColor() {
+    CODEC2_LOG(CODEC2_LOG_INFO, "[%d##%d] config solid black color value:%d",
+                        mComponent->mSessionID, mComponent->mDecoderID, mSetSolidBlackColor->value);
+    mComponent->onConfigureSetSolidBlackColor(mSetSolidBlackColor->value);
 }
 
 }

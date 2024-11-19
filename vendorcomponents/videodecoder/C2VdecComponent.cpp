@@ -583,6 +583,13 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
         mTunnelHelper->init();
         mTunnelHelper->setPlayerInfo(&info);
         mTunnelHelper->start();
+
+        if (mIntfImpl->mPushBlankBuffersOnShutdownInTunnel->value) {
+            mTunnelHelper->pushBlankBuffersOnShutdownInTunnel(mIntfImpl->mPushBlankBuffersOnShutdownInTunnel->value);
+        }
+        if (mIntfImpl->mSetSolidBlackColor->value) {
+            mTunnelHelper->setSolidBlackColor(mIntfImpl->mSetSolidBlackColor->value);
+        }
     }
     if (isTunnerPassthroughMode() && mTunerPassthroughHelper) {
         mTunerPassthroughHelper->start();
@@ -3951,6 +3958,18 @@ void C2VdecComponent::onConfigureEsModeHwAvsyncId(int32_t avSyncId){
             CODEC2_LOG(CODEC2_LOG_ERR, "Invalid hwsyncid:0x%x", avSyncId);
         }
      }
+}
+
+void C2VdecComponent::onConfigurePushBlankBuffersOnShutdownInTunnel(int32_t value) {
+    if (isTunnelMode() && mTunnelHelper) {
+        mTunnelHelper->pushBlankBuffersOnShutdownInTunnel(value);
+    }
+}
+
+void C2VdecComponent::onConfigureSetSolidBlackColor(int32_t value) {
+    if (isTunnelMode() && mTunnelHelper) {
+        mTunnelHelper->setSolidBlackColor(value);
+    }
 }
 
 void C2VdecComponent::updateComponentState(const ComponentState& state, bool error) {

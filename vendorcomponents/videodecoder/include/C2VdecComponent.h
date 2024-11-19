@@ -184,6 +184,8 @@ public:
     void onConfigureTunerPassthroughTransitionPrerollRate();
     void onConfigureTunerPassthroughTransitionPrerollAVTolerance();
     void onConfigureTunerPassthroughPlaybackStatus();
+    void onConfigurePushBlankBuffersOnShutdownInTunnel(int32_t value);
+    void onConfigureSetSolidBlackColor(int32_t value);
     //for out use
     bool isAmDolbyVision() {return mIsDolbyVision;}
     bool isSecureMode() {return mSecureMode;}

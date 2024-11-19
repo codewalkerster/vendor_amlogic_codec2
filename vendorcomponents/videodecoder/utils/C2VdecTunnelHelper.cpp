@@ -847,4 +847,20 @@ bool C2VdecComponent::TunnelHelper::setPlayerInfo(playerInfo* info) {
     return C2_OK;
 }
 
+bool C2VdecComponent::TunnelHelper::pushBlankBuffersOnShutdownInTunnel(int32_t value) {
+    if (mVideoTunnelRenderer) {
+        mVideoTunnelRenderer->pushBlankBuffersOnShutdownInTunnel(value);
+    }
+
+    return C2_OK;
+}
+
+bool C2VdecComponent::TunnelHelper::setSolidBlackColor(int32_t value) {
+    if (mVideoTunnelRenderer) {
+        mVideoTunnelRenderer->setSolidBlackColor(value);
+    }
+
+    return C2_OK;
+}
+
 }

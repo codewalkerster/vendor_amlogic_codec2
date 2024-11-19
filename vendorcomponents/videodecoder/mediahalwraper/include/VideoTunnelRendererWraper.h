@@ -54,6 +54,8 @@ public:
     void setPlayerInfo(playerInfo* info);
     bool setRenderedReportWithMP();
     bool sendVideoFrame(renderframe* frame);
+    bool pushBlankBuffersOnShutdownInTunnel(int32_t value);
+    bool setSolidBlackColor(int32_t value);
 
 private:
     VideoTunnelRendererBase* mVideoTunnelRenderer;

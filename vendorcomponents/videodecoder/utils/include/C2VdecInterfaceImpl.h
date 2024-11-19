@@ -97,6 +97,8 @@ private:
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollAVTolerance::input, VendorTunerPassthroughTransitionPrerollAVTolerance);
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughPlaybackStatus::input, VendorTunerPassthroughPlaybackStatus);
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2ScreenFreezeMode::input, VendorScreenFreezeMode);
+    DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2PushBlankBuffersOnShutdownInTunnel::input, VendorPushBlankBuffersOnShutdownInTunnel);
+    DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2SetSolidBlackColor::input, VendorSetSolidBlackColor);
 
     std::shared_ptr<C2ApiLevelSetting> mApiLevel;
     std::shared_ptr<C2ApiFeaturesSetting> mApiFeatures;
@@ -195,6 +197,8 @@ private:
     std::shared_ptr<C2StreamPixelFormatInfo::output> mPixelFormatInfo;
     std::shared_ptr<C2ErrorPolicy::input> mErrorPolicy;
     std::shared_ptr<C2ScreenFreezeMode::input> mVideoScreenFreezeMode;
+    std::shared_ptr<C2PushBlankBuffersOnShutdownInTunnel::input> mPushBlankBuffersOnShutdownInTunnel;
+    std::shared_ptr<C2SetSolidBlackColor::input> mSetSolidBlackColor;
 
     c2_status_t mInitStatus;
     media::VideoCodecProfile mCodecProfile;
@@ -272,6 +276,8 @@ private:
 
     c2_status_t onStreamPictureSizeConfigParam(std::vector<std::unique_ptr<C2SettingResult>>* const failures, C2Param* const param);
 
+    void onPushBlankBuffersOnShutdownInTunnelConfigParam();
+    void onSetSolidBlackColor();
 };
 }
 

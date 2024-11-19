@@ -49,6 +49,8 @@ enum C2AmlParamIndexKind : C2Param::type_index_t {
     kParamIndexVendorTunerPassthroughTransitionPrerollAVTolerance,
     kParamIndexVendorTunerPassthroughPlaybackStatus,
     kParamIndexVendorScreenFreezeMode,
+    kParamIndexVendorPushBlankBuffersOnShutdownInTunnel,
+    kParamIndexVendorSetSolidBlackColor,
 
     /*these are Audio Decoder config parameters.*/
     kParamIndexVendorAdecCodecId = C2Param:: TYPE_INDEX_VENDOR_START + 0x200,
@@ -338,6 +340,30 @@ struct C2VendorScreenFreezeModeStruct {
 typedef C2PortParam<C2Setting, C2VendorScreenFreezeModeStruct, kParamIndexVendorScreenFreezeMode> C2ScreenFreezeMode;
 constexpr char C2_PARAMKEY_VENDOR_SCALING_FREEZE_MODE[] = "scaling-freeze-mode";
 constexpr char KEY_VENDOR_SCALING_FREEZE_MODE[] = "vendor.scaling-freeze-mode.enable";
+
+struct C2VendorPushBlankBuffersOnShutdownInTunnelStruct {
+    inline C2VendorPushBlankBuffersOnShutdownInTunnelStruct() = default;
+    inline C2VendorPushBlankBuffersOnShutdownInTunnelStruct(int32_t val) : value(val) {}
+    int32_t value;
+    DEFINE_AND_DESCRIBE_C2STRUCT(VendorPushBlankBuffersOnShutdownInTunnel)
+    C2FIELD(value, "push-blank-buffers-on-shutdown")
+};
+
+typedef C2PortParam<C2Setting, C2VendorPushBlankBuffersOnShutdownInTunnelStruct, kParamIndexVendorPushBlankBuffersOnShutdownInTunnel> C2PushBlankBuffersOnShutdownInTunnel;
+constexpr char C2_PARAMKEY_VENDOR_PUSH_BLANK_BUFFERS_ON_SHUTDOWN[] = "tunnel";
+constexpr char KEY_VENDOR_PUSH_BLANK_BUFFERS_ON_SHUTDOWN[] = "vendor.tunnel.push-blank-buffers-on-shutdown";
+
+struct C2VendorSetSolidBlackColorStruct {
+    inline C2VendorSetSolidBlackColorStruct() = default;
+    inline C2VendorSetSolidBlackColorStruct(int32_t val) : value(val) {}
+    int32_t value;
+    DEFINE_AND_DESCRIBE_C2STRUCT(VendorSetSolidBlackColor)
+    C2FIELD(value, "set_solid_black_color")
+};
+
+typedef C2PortParam<C2Setting, C2VendorSetSolidBlackColorStruct, kParamIndexVendorSetSolidBlackColor> C2SetSolidBlackColor;
+constexpr char C2_PARAMKEY_VENDOR_SET_SOLID_BLACK_COLOR[] = "tunnel";
+constexpr char KEY_VENDOR_SET_SOLID_BLACK_COLOR[] = "vendor.tunnel.set_solid_black_color";
 
 
 /* ================================ Audio Config Parameter ================================ */
