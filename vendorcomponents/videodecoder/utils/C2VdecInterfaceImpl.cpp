@@ -1418,7 +1418,7 @@ void C2VdecComponent::IntfImpl::onBufferSizeDeclareParam(const char* mine) {
         static C2R MaxSizeCalculator(bool mayBlock, C2P<C2StreamMaxBufferSizeInfo::input>& me,
                                         const C2P<C2StreamPictureSizeInfo::output>& size) {
             (void)mayBlock;
-            size_t maxInputSize = property_get_int32(C2_PROPERTY_VDEC_INPUT_MAX_SIZE, 6291456);
+            size_t maxInputSize = property_get_int32(C2_PROPERTY_VDEC_INPUT_MAX_SIZE, kMaxInputBufferSize);
             size_t paddingSize = property_get_int32(C2_PROPERTY_VDEC_INPUT_MAX_PADDINGSIZE, kLinearPaddingBufferSize);
             size_t defaultSize = me.get().value;
             if (defaultSize > kMaxInputBufferSize) {
