@@ -97,6 +97,12 @@ c2_status_t C2VdecComponent::TunnelHelper::init() {
 c2_status_t C2VdecComponent::TunnelHelper::start() {
     LockWeakPtrWithReturnVal(comp, mComp, C2_BAD_VALUE);
     if (mVideoTunnelRenderer) {
+        // set framerate
+        LockWeakPtrWithReturnVal(intfImpl, mIntfImpl, C2_BAD_VALUE);
+        float frameRate = intfImpl->getInputFrameRate();
+        int32_t frameRate100 = (int32_t) (100 * frameRate);
+        mVideoTunnelRenderer->setFrameRate(frameRate100);
+
         mDeviceUtil = comp->mDeviceUtil;
         mVideoTunnelRenderer->regFillVideoFrameCallBack(fillVideoFrameCallback2, this);
         mVideoTunnelRenderer->regNotifyTunnelRenderTimeCallBack(notifyTunnelRenderTimeCallback, this);
