@@ -192,11 +192,6 @@ c2_status_t C2VdecComponent::TunerPassthroughHelper::setTrickMode() {
 
     C2VdecTPH_LOG(CODEC2_LOG_INFO, "passthrough trickmode:%d, trickspeed:%d, frameAdvance:%d", mode, trickSpeed, frameAdvance);
 
-    if (frameAdvance == 1 && mode == TRICK_MODE_NONE) {
-        C2VdecTPH_LOG(CODEC2_LOG_INFO, "step I only frame");
-        return C2_OK;
-    }
-
     mTunerPassthrough->SetTrickMode(mode);
     mTunerPassthrough->SetTrickSpeed(trickSpeed / 1000.f);
 
