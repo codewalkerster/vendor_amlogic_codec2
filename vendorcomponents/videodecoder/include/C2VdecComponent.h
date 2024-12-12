@@ -89,7 +89,7 @@ namespace android {
 
 #define LockWeakPtrWithReturnVal(name, weak, retval) \
     RETURN_ON_UNINITIALIZED_OR_ERROR_WithVal(retval) \
-    auto name = weak.lock(); \
+    auto name = weak.expired() ? nullptr : weak.lock(); \
     if (name == nullptr) { \
         CODEC2_LOG(CODEC2_LOG_ERR, "[%s:%d] null ptr, please check",__func__, __LINE__); \
         return retval;\
@@ -97,21 +97,21 @@ namespace android {
 
 #define LockWeakPtrWithReturnVoid(name, weak) \
     RETURN_ON_UNINITIALIZED_OR_ERROR() \
-    auto name = weak.lock(); \
+    auto name = weak.expired() ? nullptr : weak.lock(); \
     if (name == nullptr) { \
         CODEC2_LOG(CODEC2_LOG_ERR, "[%s:%d] null ptr, please check",__func__, __LINE__); \
         return;\
     }
 
 #define LockWeakPtrWithReturnVal_WithoutC2Status(name, weak, retval) \
-    auto name = weak.lock(); \
+    auto name = weak.expired() ? nullptr : weak.lock(); \
     if (name == nullptr) { \
         CODEC2_LOG(CODEC2_LOG_ERR, "[%s:%d] null ptr, please check",__func__, __LINE__); \
         return retval;\
     }
 
 #define LockWeakPtrWithReturnVoid_WithoutC2Status(name, weak) \
-    auto name = weak.lock(); \
+    auto name = weak.expired() ? nullptr : weak.lock(); \
     if (name == nullptr) { \
         CODEC2_LOG(CODEC2_LOG_ERR, "[%s:%d] null ptr, please check",__func__, __LINE__); \
         return;\

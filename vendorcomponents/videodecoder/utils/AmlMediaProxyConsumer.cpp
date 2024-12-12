@@ -75,17 +75,20 @@ MediaProxyConsumer::~MediaProxyConsumer() {
 
 void* MediaProxyConsumer::consumerThread(void *arg) {
     MediaProxyConsumer* consumer = (MediaProxyConsumer*) arg;
+    struct aml_video_user_data userData;
     while (consumer->mRunning) {
-        struct aml_video_user_data userData;
+        memset(&userData, 0, sizeof(userData));
         if (0 > consumer->MediaProxyConsumer_readData(consumer->mProxyHandle, &userData)) {
             if (errno != ETIMEDOUT) {
                 ALOGE("Failed to read data from media proxy, errno=%s", strerror(errno));
             } else {
                 ALOGV("Timeout reading data from media proxy");
             }
+            // wait for a while and try again
+            ::usleep(100000);
             continue;
         }
-       if (consumer->mCallback != nullptr) {
+       if (consumer->mRunning && consumer->mCallback != nullptr) {
             consumer->mCallback(consumer->mPrivateData, (const struct aml_video_user_data&) userData);
         }
     }

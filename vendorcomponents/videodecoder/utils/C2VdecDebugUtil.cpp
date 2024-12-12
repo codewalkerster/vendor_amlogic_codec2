@@ -263,8 +263,11 @@ void C2VdecComponent::DebugUtil::stop() {
 void C2VdecComponent::DebugUtil::dtor() {
     mDestroyedAt = getNowUs();
     if (mMediaProxyConsumer != nullptr) {
-        delete mMediaProxyConsumer;
+        // MediaProxyConsumer distructor maybe coast a lot of time, because it will wait its work thread finished.
+        // so we set mMediaProxyConsumer to nullptr before delete it to avoid delete it twice.
+        auto mediaProxyConsumer = mMediaProxyConsumer;
         mMediaProxyConsumer = nullptr;
+        delete mediaProxyConsumer;
     }
 }
 
