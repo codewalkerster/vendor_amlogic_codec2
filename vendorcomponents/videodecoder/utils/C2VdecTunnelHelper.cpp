@@ -795,22 +795,6 @@ c2_status_t C2VdecComponent::TunnelHelper::fastHandleOutBufferTunnel(uint64_t ti
         return C2_OK;
     }
 
-    C2Work* work = NULL;
-    auto pendingBuffer = comp->findPendingBuffersToWorkByTime(timestamp);
-    auto workIter = comp->findPendingWorkByBitstreamId(pendingBuffer->mBitstreamId);
-    if (workIter != comp->mPendingWorks.end()) {
-        work = workIter->get();
-    }
-
-    if (work != NULL) {
-        work->result = C2_OK;
-        work->workletsProcessed = static_cast<uint32_t>(work->worklets.size());
-        work->worklets.front()->output.flags = static_cast<C2FrameData::flags_t>(0);
-        comp->reportWork(std::move(*workIter));
-        comp->mOutputFinishedWorkCount++;
-        comp->mPendingWorks.erase(workIter);
-    }
-
     GraphicBlockInfo* info = comp->getGraphicBlockById(pictureBufferId);
     if (!info) {
         C2VdecTMH_LOG(CODEC2_LOG_ERR, "Can't get graphic block pictureBufferId:%d, please check!", pictureBufferId);
