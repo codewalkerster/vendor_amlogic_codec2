@@ -168,7 +168,52 @@ std::atomic<int32_t> C2VdecComponent::sConcurrentInstanceSecures = 0;
 std::atomic<int32_t> C2VdecComponent::sConcurrentMaxResolutionInstance = 0;
 std::atomic<int32_t> C2VdecComponent::sConcurrentVc1Instance = 0;
 
+// color format map
+typedef struct {
+    uint64_t codec_format;
+    HalPixelFormat gralloc_format;
+    uint64_t decoder_format;
+    const char* format;
+} codec_gralloc_decoder_fmt;
 
+static const codec_gralloc_decoder_fmt gCodecGrallocDecoderFmtMap[] {
+    {HAL_PIXEL_FORMAT_YCBCR_420_888, HalPixelFormat::YCbCr_420_888, V4L2_PIX_FMT_NV12, "NV12"},
+    {HAL_PIXEL_FORMAT_YCRCB_420_SP, HalPixelFormat::YCRCB_420_SP, V4L2_PIX_FMT_NV21, "NV21"},
+    {HAL_PIXEL_FORMAT_YCBCR_P010, HalPixelFormat::YCBCR_P010, V4L2_PIX_FMT_NV12, "NV12"}
+};
+
+//color format covert
+HalPixelFormat codecFormat2GrallocFormat(uint64_t codecfmt) {
+    for (int i = 0; i < sizeof(gCodecGrallocDecoderFmtMap) / sizeof(codec_gralloc_decoder_fmt); i++) {
+        if (codecfmt == gCodecGrallocDecoderFmtMap[i].codec_format) {
+            return gCodecGrallocDecoderFmtMap[i].gralloc_format;
+        }
+    }
+    //default use nv12
+    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL1, "not found matched gralloc format match %lld, default use nv12", (long long)codecfmt);
+    return HalPixelFormat::YCbCr_420_888;
+}
+
+uint64_t codecFormat2DecoderFormat(uint64_t codecfmt) {
+    for (int i = 0; i < sizeof(gCodecGrallocDecoderFmtMap) / sizeof(codec_gralloc_decoder_fmt); i++) {
+        if (codecfmt == gCodecGrallocDecoderFmtMap[i].codec_format) {
+            return gCodecGrallocDecoderFmtMap[i].decoder_format;
+        }
+    }
+    //default use nv12
+    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL1, "not found matched decoder format match %lld, default use nv12", (long long)codecfmt);
+    return V4L2_PIX_FMT_NV12;
+}
+
+const char* codecFormat2String(uint64_t codecfmt) {
+    for (int i = 0; i < sizeof(gCodecGrallocDecoderFmtMap) / sizeof(codec_gralloc_decoder_fmt); i++) {
+        if (codecfmt == gCodecGrallocDecoderFmtMap[i].codec_format) {
+            return gCodecGrallocDecoderFmtMap[i].format;
+        }
+    }
+    //default use nv12
+    return "NV12";
+}
 
 
 // static
@@ -2512,10 +2557,7 @@ c2_status_t C2VdecComponent::allocNonTunnelBuffers(const media::Size& size, uint
 
     // Allocate the output buffers.
     if (mVideoDecWraper) {
-        if (mDeviceUtil->checkUseP010Mode() == kUseHardwareP010) {
-            C2Vdec_LOG(CODEC2_LOG_DEBUG_LEVEL2, "[%s] Hardware p010 use NV12", __func__);
-            mVideoDecWraper->setOutputFormat(V4L2_PIX_FMT_NV12);
-        }
+        mVideoDecWraper->setOutputFormat(codecFormat2DecoderFormat(GetIntfImpl()->getPixelFormatInfoValue()));
         mVideoDecWraper->assignPictureBuffers(bufferCount);
     }
     mCanQueueOutBuffer = true;
@@ -2623,24 +2665,6 @@ c2_status_t C2VdecComponent::allocateBuffersFromBlockPool(const media::Size& siz
     }
     mOutBufferCount = bufferCount;
     mGraphicBlocks.clear();
-
-    // Get block pool ID configured from the client.
-    std::shared_ptr<C2BlockPool> blockPool;
-    C2BlockPool::local_id_t poolId = 0;
-    c2_status_t err;
-    if (mBlockPoolUtil == nullptr) {
-        poolId = mIntfImpl->getBlockPoolId();
-        err = GetCodec2BlockPool(poolId, shared_from_this(), &blockPool);
-        if (err != C2_OK) {
-            C2Vdec_LOG(CODEC2_LOG_ERR, "Graphic block allocator is invalid");
-            reportError(err);
-            return err;
-        }
-        CODEC2_LOG(CODEC2_LOG_INFO,"Using C2BlockPool ID:%" PRId64 "for allocating output buffers, allocator id:%d",
-                poolId, blockPool->getAllocatorId());
-        DCHECK(blockPool != NULL);
-        mBlockPoolUtil = std::make_shared<C2VdecBlockPoolUtil> (blockPool);
-    }
 
     int64_t surfaceUsage = 0;
     bool usersurfacetexture = false;
@@ -3267,9 +3291,34 @@ void C2VdecComponent::ProvidePictureBuffers(uint32_t minNumBuffers, uint32_t wid
     if (mDeviceUtil->needAllocWithMaxSize(width, height)) {
         mDeviceUtil->getMaxBufWidthAndHeight(max_width, max_height);
     }
-    auto format = std::make_unique<VideoFormat>(HalPixelFormat::YCRCB_420_SP, minNumBuffers,
-                                                media::Size(max_width, max_height), media::Rect(width, height));
 
+    // Get block pool ID configured from the client.
+    std::shared_ptr<C2BlockPool> blockPool;
+    C2BlockPool::local_id_t poolId = 0;
+    c2_status_t err;
+    if (mBlockPoolUtil == nullptr) {
+        poolId = mIntfImpl->getBlockPoolId();
+        err = GetCodec2BlockPool(poolId, shared_from_this(), &blockPool);
+        if (err != C2_OK) {
+            C2Vdec_LOG(CODEC2_LOG_ERR, "Graphic block allocator is invalid");
+            reportError(err);
+            return;
+        }
+        CODEC2_LOG(CODEC2_LOG_INFO,"Using C2BlockPool ID:%" PRId64 "for allocating output buffers, allocator id:%d",
+                poolId, blockPool->getAllocatorId());
+        DCHECK(blockPool != NULL);
+        mBlockPoolUtil = std::make_shared<C2VdecBlockPoolUtil> (blockPool);
+    }
+
+    int64_t usage = mBlockPoolUtil->getConsumerUsage();
+    if (usage & GRALLOC_USAGE_SW_WRITE_MASK ||
+        usage & GRALLOC_USAGE_SW_READ_MASK) {
+        mIntfImpl-> mPixelFormatInfo = std::make_shared<C2StreamPixelFormatInfo::output>(HAL_PIXEL_FORMAT_YCRCB_420_SP);
+    }
+    auto format = std::make_unique<VideoFormat>(codecFormat2GrallocFormat(GetIntfImpl()->getPixelFormatInfoValue()),
+            minNumBuffers, media::Size(max_width, max_height), media::Rect(width, height));
+
+    C2Vdec_LOG(CODEC2_LOG_INFO, "[%s] use colormat:%s", __func__, codecFormat2String(GetIntfImpl()->getPixelFormatInfoValue()));
     // Set mRequestedVisibleRect to default.
     mRequestedVisibleRect = media::Rect();
     mTaskRunner->PostTask(FROM_HERE, ::base::Bind(&C2VdecComponent::onOutputFormatChanged,

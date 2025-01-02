@@ -25,6 +25,7 @@
 #include <C2VendorSoftVideoSupport.h>
 #include <util/C2InterfaceHelper.h>
 #include <C2VdecCodecConfig.h>
+#include <media/stagefright/MediaCodecConstants.h>
 
 #include <C2VendorProperty.h>
 #include <C2VendorDebug.h>
@@ -198,6 +199,7 @@ private:
     struct Interface : public C2InterfaceHelper {
         std::shared_ptr<C2StoreIonUsageInfo> mIonUsageInfo;
         std::shared_ptr<C2StoreDmaBufUsageInfo> mDmaBufUsageInfo;
+        std::shared_ptr<C2StoreFlexiblePixelFormatDescriptorsInfo> mPixelFormatDescriptorsInfo;
 
         Interface(std::shared_ptr<C2ReflectorHelper> reflector)
             : C2InterfaceHelper(reflector) {
@@ -226,7 +228,12 @@ private:
                         strncpy(me.set().m.heapName, "system", me.v.flexCount());
                     me.set().m.allocFlags = 0;
                     return C2R::Ok();
-                };
+                }
+
+                static C2R PixelFormatDescriptorsInfoSetter(bool /* mayBlock */, C2P<C2StoreFlexiblePixelFormatDescriptorsInfo> &me) {
+                    UNUSED(me);
+                    return C2R::Ok();
+                }
             };
 
             addParameter(
@@ -253,7 +260,22 @@ private:
                 })
                 .withSetter(Setter::setDmaBufUsage)
                 .build());
-        }
+
+            C2FlexiblePixelFormatDescriptorStruct pinfo[] = {
+                {COLOR_FormatYUV420SemiPlanar, 8, C2Color::YUV_420, C2Color::SEMIPLANAR_PACKED},
+                {COLOR_FormatYUV420Planar, 8, C2Color::YUV_420, C2Color::PLANAR_PACKED},
+                {COLOR_FormatYUVP010, 10, C2Color::YUV_420, C2Color::PLANAR_PACKED},
+            };
+            addParameter(
+                DefineParam(mPixelFormatDescriptorsInfo, "pixelformat.descriptorsinfo")
+                    .withDefault(C2StoreFlexiblePixelFormatDescriptorsInfo::AllocShared(pinfo))
+                    .withFields({C2F(mPixelFormatDescriptorsInfo, m.values[0].bitDepth).any(),
+                                 C2F(mPixelFormatDescriptorsInfo, m.values[0].pixelFormat).any(),
+                                 C2F(mPixelFormatDescriptorsInfo, m.values[0].subsampling).any(),
+                                 C2F(mPixelFormatDescriptorsInfo, m.values[0].layout).any()})
+            .withSetter(Setter::PixelFormatDescriptorsInfoSetter)
+            .build());
+            }
     };
 
     c2_status_t findComponent(C2String name, ComponentLoader** loader);

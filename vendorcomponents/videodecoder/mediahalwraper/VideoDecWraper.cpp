@@ -263,7 +263,7 @@ void VideoDecWraper::importBufferForPicture(
     bool isNV21) {
     C2VdecWraper_LOG(CODEC2_LOG_TAG_BUFFER,"importBufferForPicture:%d, fd:%d, meta fd:%d", pictureBufferId, fd, metafd);
     if (mAmVideoDec) {
-        CODEC2_LOG(CODEC2_LOG_TAG_BUFFER,"outbuf color format %s", isNV21? "NV21" : "NV12");
+        //CODEC2_LOG(CODEC2_LOG_TAG_BUFFER,"outbuf color format %s", isNV21? "NV21" : "NV12");
         mAmVideoDec->createOutputBuffer(pictureBufferId,
                 dup(fd), isNV21, metafd >= 0 ? dup(metafd) : -1);
     }

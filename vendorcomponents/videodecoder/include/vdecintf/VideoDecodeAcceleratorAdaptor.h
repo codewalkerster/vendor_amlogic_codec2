@@ -30,6 +30,8 @@ enum class HalPixelFormat : uint32_t {
     UNKNOWN = 0x0,
     YCRCB_420_SP = 0x11,
     YCbCr_420_888 = 0x23,
+    YCBCR_P010 = 0x36,
+    IMPLEMENTATION_DEFINED = 0x22,
     YV12 = 0x32315659,
     NV12 = 0x3231564e,
     NV21 = 0x3132564e,
