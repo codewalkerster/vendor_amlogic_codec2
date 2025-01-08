@@ -32,6 +32,7 @@ cc_library_shared {
         "libbinder",
         "libutilscallstack",
         "liblog",
+        "libyuv",
         "libstagefright_bufferqueue_helper",
         "libsfplugin_ccodec_utils",
         "libcodec2_simple_component",
@@ -47,7 +48,6 @@ cc_library_shared {
         "libvendor_c2componentstore",
         "libvendor_c2common",
         "libamgralloc_ext",
-        "libyuv",
     ],
 
     static_libs: [

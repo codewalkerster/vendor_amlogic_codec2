@@ -946,7 +946,7 @@ bool C2SoftImageComponent::processQueue() {
         work = queue->pop_front();
         hasQueuedWork = !queue->empty();
     }
-    CODEC2_LOG(CODEC2_LOG_INFO, "isFlushPending%d",hasQueuedWork);
+    CODEC2_LOG(CODEC2_LOG_INFO, "isFlushPending");
     if (isFlushPending) {
         CODEC2_LOG(CODEC2_LOG_INFO, "Processing pending flush");
         c2_status_t err = onFlush_sm();
@@ -1082,11 +1082,10 @@ bool C2SoftImageComponent::processQueue() {
     if (work->workletsProcessed != 0u) {
         queue.unlock();
         Mutexed<ExecState>::Locked state(mExecState);
-        CODEC2_LOG(CODEC2_LOG_INFO, "Returning this work %d",work->worklets.front()->output.flags);
+        CODEC2_LOG(CODEC2_LOG_INFO, "Returning this work");
         std::shared_ptr<C2Component::Listener> listener = state->mListener;
         state.unlock();
         listener->onWorkDone_nb(shared_from_this(), vec(work));
-
     } else {
         CODEC2_LOG(CODEC2_LOG_INFO, "Queue pending work");
         work->input.buffers.clear();
@@ -1102,7 +1101,7 @@ bool C2SoftImageComponent::processQueue() {
         queue.unlock();
         if (unexpected) {
             CODEC2_LOG(CODEC2_LOG_ERR, "Unexpected pending work");
-            unexpected->result = C2_BAD_VALUE;
+            unexpected->result = C2_CORRUPTED;
             Mutexed<ExecState>::Locked state(mExecState);
             std::shared_ptr<C2Component::Listener> listener = state->mListener;
             state.unlock();

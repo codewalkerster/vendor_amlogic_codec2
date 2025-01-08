@@ -160,11 +160,6 @@ c2_status_t C2Imagedec::onInit() {
         mHeight = mSize->height;
         CODEC2_LOG(CODEC2_LOG_INFO, "Set mWidth=%d, mHeight=%d from CCodecConfig", mWidth, mHeight);
     }
-    std::shared_ptr<C2StreamPixelFormatInfo::output> mPixelFormatInfo = mIntfImpl->getPixelFormat_l();
-    if (mPixelFormatInfo->value != HAL_PIXEL_FORMAT_YCBCR_420_888) {
-        CODEC2_LOG(CODEC2_LOG_INFO, "Set format %d %d",mPixelFormatInfo->value,HAL_PIXEL_FORMAT_YCBCR_420_888);
-        return C2_BAD_VALUE;
-    }
     CODEC2_LOG(CODEC2_LOG_INFO, "before getprop");
     bool support_4k = property_get_bool(PROPERTY_PLATFORM_SUPPORT_4K, true);
     bool support_8k = property_get_bool(PROPERTY_PLATFORM_SUPPORT_8K, false);
@@ -378,10 +373,9 @@ void C2Imagedec::process(
     uint8_t *inBuffer = const_cast<uint8_t *>(rView.data());
     bool codecConfig = ((work->input.flags & C2FrameData::FLAG_CODEC_CONFIG) !=0);
     bool eos = ((work->input.flags & C2FrameData::FLAG_END_OF_STREAM) != 0);
-    ALOGE("img: input size%zu %d %d",inSize,eos,codecConfig);
+
     bool frameHasData = (inSize > 0);
     bool flushPendingWork = (eos && !mPendingWorkFrameIndexes.empty());
-    //if (inSize < 2) return;
 
     // Config csd data
     if (codecConfig) {
@@ -400,7 +394,7 @@ void C2Imagedec::process(
         CODEC2_LOG(CODEC2_LOG_INFO, "For %s don't input config pkt to ffmpeg", mDecoderName.c_str());
         fillEmptyWork(work);
         return;
-    }else if (inSize >2 && (inBuffer[inSize-2] != 0xff || inBuffer[inSize-1] != 0xd9)) {
+    }else if (inSize > 2 && (inBuffer[inSize-2] != 0xff || inBuffer[inSize-1] != 0xd9)) {
         unsigned char ffd9[] = {0xff, 0xd9};
         if (mExtraData != NULL) {
             free(mExtraData);
@@ -419,6 +413,7 @@ void C2Imagedec::process(
     // Loop for resolution changed case.
     //while (frameHasData || flushPendingWork) {
     if (frameHasData || flushPendingWork) {
+        ALOGE("img enter");
         decoder.UnloadFrame();
         int width = 0;
         int height = 0;
@@ -444,8 +439,6 @@ void C2Imagedec::process(
             return;
         }
         decoder.LoadFrame(inBuffer, inSize);
-        ALOGE("colorspace %d %d [%d %d %d %d %d %d]",decoder.GetColorSpace(),decoder.GetNumComponents(),
-        decoder.GetVertSampFactor(0),decoder.GetHorizSampFactor(0));
 
         C2GraphicView wView = mOutBlock->map().get();
         if (wView.error()) {
