@@ -1695,7 +1695,8 @@ void C2VdecComponent::onFlushDone() {
             auto nextBuffer = mPendingBuffersToWork.front();
             GraphicBlockInfo* info = getGraphicBlockById(nextBuffer.mBlockId);
             if (info == NULL) {
-                C2Vdec_LOG(CODEC2_LOG_ERR, "[%s] info is null, please check it.", __func__);
+                C2Vdec_LOG(CODEC2_LOG_ERR, "[%s] get graphic buffer information is empty, please check buffer id:%d", __func__, nextBuffer.mBlockId);
+                mPendingBuffersToWork.pop_front();
                 continue;
             }
             BufferStatus(this, CODEC2_LOG_TAG_BUFFER, "[%s] add flush done add index=%d", __func__,nextBuffer.mBlockId);
