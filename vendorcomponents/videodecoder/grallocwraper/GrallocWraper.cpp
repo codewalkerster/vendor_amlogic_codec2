@@ -538,6 +538,9 @@ void GrallocWraper::setParameters(C2VdecComponent::DeviceUtil* deviceUtil, const
         param[GRALLOC_DECODE_PARA_HALIGN] = 1;
     }
 
+    int32_t doubleWrite = deviceUtil->getDoubleWriteModeValue();
+    param[GRALLOC_DECODE_PARA_COMPRESS] = ((doubleWrite == 0x1) || (doubleWrite == 0x10)) ? 0: 1;
+
     C2VdecGW_LOG(CODEC2_LOG_INFO, "setParam WxH(%llu x %llu), Align(%llu : %llu) for slot id:%d",
             (unsigned long long)param[GRALLOC_DECODE_PARA_WIDTH], (unsigned long long)param[GRALLOC_DECODE_PARA_HEIGHT],
             (unsigned long long)param[GRALLOC_DECODE_PARA_WALIGN], (unsigned long long)param[GRALLOC_DECODE_PARA_HALIGN], mSlotID);
