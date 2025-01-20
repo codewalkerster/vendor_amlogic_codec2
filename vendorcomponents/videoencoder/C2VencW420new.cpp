@@ -824,17 +824,17 @@ bool C2VencW420New::codecTypeTrans(uint32_t inputCodec,vl_img_format_hevc_t *pOu
     }
     switch (inputCodec) {
         case HAL_PIXEL_FORMAT_YCBCR_420_888: {
-            *pOutputCodec = IMG_FMT_NV21;
+            *pOutputCodec = IMG_FMT_NV12;
             ret = true;
             break;
         }
         case HAL_PIXEL_FORMAT_YCRCB_420_SP: {
-            *pOutputCodec = IMG_FMT_YUV420P/*IMG_FMT_NV12*/;
+            *pOutputCodec = IMG_FMT_NV21/*IMG_FMT_NV12*/;
             ret = true;
             break;
         }
         default: {
-            *pOutputCodec = IMG_FMT_NV21;
+            *pOutputCodec = IMG_FMT_NV12;
             C2W420_LOG(CODEC2_VENC_LOG_ERR,"cannot support colorformat:%x",inputCodec);
             ret = false;
             break;

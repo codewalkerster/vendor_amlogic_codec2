@@ -608,6 +608,9 @@ c2_status_t C2VencComponent::DMAProc(const native_handle_t*priv_handle,InputFram
             (*dumpFileSize) = pFrameInfo->yStride * PicSize.height * 4;
             break;
         case HAL_PIXEL_FORMAT_YCbCr_420_888:
+            pFrameInfo->colorFmt = C2_ENC_FMT_NV12;
+            (*dumpFileSize) = pFrameInfo->yStride * PicSize.height * 3 / 2;
+            break;
         case HAL_PIXEL_FORMAT_YCrCb_420_SP:
             pFrameInfo->colorFmt = C2_ENC_FMT_NV21;
             (*dumpFileSize) = pFrameInfo->yStride * PicSize.height * 3 / 2;
@@ -622,8 +625,8 @@ c2_status_t C2VencComponent::DMAProc(const native_handle_t*priv_handle,InputFram
             C2Venc_LOG(CODEC2_VENC_LOG_ERR,"cannot find support fmt %d,default:%d",format,pFrameInfo->colorFmt);
             break;
     }
-    C2Venc_LOG(CODEC2_VENC_LOG_DEBUG,"yStride:%d,uStride:%d,vStride:%d,view->width():%d,view->height():%d,plane num:%d",
-    pFrameInfo->yStride,pFrameInfo->uStride,pFrameInfo->vStride,PicSize.width,PicSize.height,pFrameInfo->planeNum);
+    C2Venc_LOG(CODEC2_VENC_LOG_DEBUG,"yStride:%d,uStride:%d,vStride:%d,view->width():%d,view->height():%d,plane num:%d,fmt:%d",
+    pFrameInfo->yStride,pFrameInfo->uStride,pFrameInfo->vStride,PicSize.width,PicSize.height,pFrameInfo->planeNum,pFrameInfo->colorFmt);
 
     return C2_OK;
 }

@@ -826,7 +826,7 @@ bool C2VencHCodec::codecTypeTrans(uint32_t inputCodec,vl_img_format_t *pOutputCo
             break;
         }
         case HAL_PIXEL_FORMAT_YCRCB_420_SP: {
-            *pOutputCodec = IMG_FMT_NV12;
+            *pOutputCodec = IMG_FMT_NV21;
             ret = true;
             break;
         }
@@ -1197,7 +1197,7 @@ c2_status_t C2VencHCodec::ProcessOneFrame(InputFrameInfo_t InputFrameInfo,Output
         }
         else {
             inputInfo.YCbCr[0] = (unsigned long)InputFrameInfo.yPlane;
-            inputInfo.YCbCr[1] = (unsigned long)InputFrameInfo.vPlane;//inputInfo.YCbCr[0] + mSize->width * mSize->height;//(unsigned long)uPlane;
+            inputInfo.YCbCr[1] = (unsigned long)InputFrameInfo.uPlane;//inputInfo.YCbCr[0] + mSize->width * mSize->height;//(unsigned long)uPlane;
             inputInfo.YCbCr[2] = (unsigned long)InputFrameInfo.vPlane;//(unsigned long)vPlane;
         }
     }
