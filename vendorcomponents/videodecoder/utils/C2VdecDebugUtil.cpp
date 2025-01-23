@@ -190,6 +190,10 @@ void C2VdecComponent::DebugUtil::debug(std::list<std::string> cmds) {
 }
 
 void onProxyConsumerUserData(void *instance, const struct aml_video_user_data& data) {
+    if (instance == nullptr) {
+        ALOGW("[%s@%d] this DebugUtil already destroyed", __func__, __LINE__);
+        return;
+    }
     C2VdecComponent::DebugUtil* util = (C2VdecComponent::DebugUtil*)instance;
     uint32_t messageType = data.message_type;
     if (messageType == MEDIA_VIDEO_ERROR_EVENT) {

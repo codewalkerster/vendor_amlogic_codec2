@@ -65,6 +65,7 @@ MediaProxyConsumer::MediaProxyConsumer(void (*callback)(void*, const struct aml_
 
 MediaProxyConsumer::~MediaProxyConsumer() {
     mRunning = false;
+    mPrivateData = nullptr;
     pthread_join(mThread, NULL);
     if (mProxyHandle) {
         MediaProxyConsumer_destroy(mProxyHandle);
@@ -88,7 +89,7 @@ void* MediaProxyConsumer::consumerThread(void *arg) {
             ::usleep(100000);
             continue;
         }
-       if (consumer->mRunning && consumer->mCallback != nullptr) {
+       if (consumer->mRunning && consumer->mPrivateData != nullptr && consumer->mCallback != nullptr) {
             consumer->mCallback(consumer->mPrivateData, (const struct aml_video_user_data&) userData);
         }
     }

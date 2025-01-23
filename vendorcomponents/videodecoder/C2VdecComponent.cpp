@@ -380,6 +380,7 @@ C2VdecComponent::~C2VdecComponent() {
     updateComponentState(ComponentState::DESTROYING);
     if (mDebugUtil) {
         removeObserver(mDebugUtil);
+        mDebugUtil->dtor();
         mDebugUtil.reset();
         mDebugUtil = NULL;
     }
