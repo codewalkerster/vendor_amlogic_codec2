@@ -128,11 +128,11 @@ c2_status_t C2VdecComponent::TunnelHelper::stop() {
     mOutBufferFdMap.clear();
 
     if (mVideoTunnelRenderer) {
+        mVideoTunnelRenderer->stop();
         mVideoTunnelRenderer->regFillVideoFrameCallBack(NULL, NULL);
         mVideoTunnelRenderer->regNotifyTunnelRenderTimeCallBack(NULL, NULL);
         mVideoTunnelRenderer->regNotifyEventCallBack(NULL, NULL);
 
-        mVideoTunnelRenderer->stop();
         mVideoTunnelRenderer.reset();
         mVideoTunnelRenderer = NULL;
         if (mTunnelHandle) {
