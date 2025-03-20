@@ -17,6 +17,7 @@ cc_library_shared {
         "C2SoftImageComponent.cpp",
         "C2SoftImagedec.cpp",
         "C2SoftImageInterfaceImpl.cpp",
+        "UltraHdrUtils.cpp",
     ],
 
     local_include_dirs: [
@@ -28,11 +29,14 @@ cc_library_shared {
         "android.hardware.graphics.bufferqueue@2.0",
         "android.hardware.graphics.mapper@2.0",
         "android.hardware.media.bufferpool@2.0",
+        "libmeson_display_adapter_remote",
         "libbase",
         "libbinder",
         "libutilscallstack",
         "liblog",
         "libyuv",
+        "libultrahdrmeta",
+        "libjpegdecoderhelper",
         "libstagefright_bufferqueue_helper",
         "libsfplugin_ccodec_utils",
         "libcodec2_simple_component",

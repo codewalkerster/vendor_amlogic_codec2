@@ -25,18 +25,23 @@
 #include <Codec2BufferUtils.h>
 #include <Codec2CommonUtils.h>
 #include <Codec2Mapper.h>
-
+#include <hardware/gralloc1.h>
+#include <UltraHdrHelper.h>
 #include <C2VendorProperty.h>
 #include <C2VendorDebug.h>
 #include <C2SoftImagedec.h>
 #include <C2SoftImageInterfaceImpl.h>
-
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <iomanip>
 #define MAX_WORK_PENDING_COUNT (7)
-
+#ifndef UNUSED
 #define UNUSED(expr)  \
     do {              \
         (void)(expr); \
     } while (0)
+#endif
 #define align_buffer_page_end(var, size)                                \
   uint8_t* var##_mem =                                                  \
       reinterpret_cast<uint8_t*>(malloc(((size) + 4095 + 63) & ~4095)); \
@@ -74,6 +79,14 @@ struct NV21Buffers {
     int w;
     int h;
 };
+static std::string uint8ArrayToHexString(const uint8_t arr[], size_t length) {
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (size_t i = 0; i < length; ++i) {
+        ss << std::setw(2) << static_cast<int>(arr[i]);
+    }
+    return ss.str();
+}
 static void JpegI444ToNV21(void* opaque, const uint8_t* const* data,
                const int* strides,int rows) {
     NV21Buffers* dest = (NV21Buffers*)(opaque);
@@ -114,7 +127,8 @@ C2Imagedec::C2Imagedec(C2String name, c2_node_id_t id,
         mFirstPictureReviced(false),
         mDecInit(false),
         mExtraData(NULL),
-        mDumpYuvFp(NULL) {
+        mDumpYuvFp(NULL),
+        mDisplayRatio(0) {
         sConcurrentInstances.fetch_add(1, std::memory_order_relaxed);
 
         CODEC2_LOG(CODEC2_LOG_INFO, "Create %s(%s)", __func__, name.c_str());
@@ -173,6 +187,13 @@ c2_status_t C2Imagedec::onInit() {
     }else {
         mMXWidth = 1920;
         mMXHeight = 1080;
+    }
+    mDisplayAdapter = meson::DisplayAdapterCreateRemote();
+    if (mDisplayAdapter != nullptr) {
+        ConnectorType type = meson::DisplayAdapter::CONN_TYPE_UNKNOWN;
+        mDisplayAdapter->getConnectorType(0, type);
+        mDisplayAdapter->getHdrSdrRatio(mDisplayRatio, type);
+        CODEC2_LOG(CODEC2_LOG_INFO,"display ratio %f",mDisplayRatio);
     }
     CODEC2_LOG(CODEC2_LOG_INFO,"mx size %d %d",mMXWidth,mMXHeight);
     return C2_OK;
@@ -316,17 +337,17 @@ void C2Imagedec::finishWork(uint64_t index, const std::unique_ptr<C2Work> &work)
     }
 }
 
-c2_status_t C2Imagedec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool, uint64_t platformUsage) {
+c2_status_t C2Imagedec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool,uint32_t format, uint64_t platformUsage) {
     if (mOutBlock &&
             (mOutBlock->width() != ALIGN64(mWidth) || mOutBlock->height() != ALIGN2(mHeight))) {
         mOutBlock.reset();
     }
-    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL1, "Start fetchGraphicBlock, Required (%dx%d)", ALIGN64(mWidth), ALIGN2(mHeight));
+    CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL1, "Start fetchGraphicBlock,format %d, Required (%dx%d)", format,ALIGN64(mWidth), ALIGN2(mHeight));
     if (!mOutBlock) {
-        uint32_t format = HAL_PIXEL_FORMAT_YV12;
+        //uint32_t format = HAL_PIXEL_FORMAT_YV12;
         C2MemoryUsage usage = { C2MemoryUsage::CPU_READ, C2MemoryUsage::CPU_WRITE };
         if (mDisPlayByVpp && platformUsage) {
-            format = HAL_PIXEL_FORMAT_YCRCB_420_SP;
+            //format = HAL_PIXEL_FORMAT_YCRCB_420_SP;
             usage = { (C2MemoryUsage::CPU_READ | C2MemoryUsage::CPU_WRITE), platformUsage };
         }
         c2_status_t err =
@@ -376,7 +397,7 @@ void C2Imagedec::process(
 
     bool frameHasData = (inSize > 0);
     bool flushPendingWork = (eos && !mPendingWorkFrameIndexes.empty());
-
+    bool isHdr = false;
     // Config csd data
     if (codecConfig) {
         if (inSize > 0) {
@@ -409,7 +430,13 @@ void C2Imagedec::process(
         memcpy(mExtraData+inSize-2, ffd9, 2);
         inBuffer = mExtraData;
     }
-
+    if (inSize > 2048) {
+        std::string head = uint8ArrayToHexString(inBuffer,2048);
+        if (head.find("6864722d6761696e2d6d6170") != string::npos && findEndStart(inBuffer,inSize)) {
+            ALOGE("is hdr");
+            isHdr = true;
+        }
+    }
     // Loop for resolution changed case.
     //while (frameHasData || flushPendingWork) {
     if (frameHasData || flushPendingWork) {
@@ -431,9 +458,11 @@ void C2Imagedec::process(
             return;
         }
         ALOGE("img exit %dx%d", width, height);
+        uint32_t format = isHdr? HAL_PIXEL_FORMAT_RGBA_1010102:HAL_PIXEL_FORMAT_YCRCB_420_SP;
+        ALOGE("format %d",format);
         mWidth = width;
         mHeight = height;
-        if (C2_OK != ensureDecoderState(pool, platformUsage)) {
+        if (C2_OK != ensureDecoderState(pool, format, platformUsage)) {
             mSignaledError = true;
             work->result = C2_BAD_VALUE;
             return;
@@ -446,20 +475,29 @@ void C2Imagedec::process(
             work->result = wView.error();
             return;
         }
-        ALOGE("after alloc buffer");
-        int half_width = (ALIGN64(width) + 1) / 2;
-        uint8_t* dstY = wView.data()[C2PlanarLayout::PLANE_Y];
-        uint8_t* dstV = wView.data()[C2PlanarLayout::PLANE_V];
+        ALOGE("provided (%dx%d) required (%dx%d)",
+           mOutBlock->width(), mOutBlock->height(), mWidth, mHeight);
         int ret = 0;
-        if (decoder.GetColorSpace() == 3 && decoder.GetNumComponents() == 3 &&
-                    decoder.GetVertSampFactor(0) == 2 && decoder.GetHorizSampFactor(0) == 1) {
-            ret = JPEG2NV21(decoder, inBuffer, inSize, dstY, ALIGN64(width) , dstV,
-                    half_width * 2, width, height, width, height);
-            ALOGE("JPEG2NV21");
-        }else {
+        if (isHdr) {
             decoder.UnloadFrame();
-            ret = libyuv::MJPGToNV21(inBuffer, inSize, dstY, ALIGN64(width) , dstV,
+            uint8_t* mOutFile = const_cast<uint8_t*>(wView.data()[0]);
+            UltraHdrAppInput appInput(inBuffer,inSize, uhdr_color_transfer_t::UHDR_CT_PQ, UHDR_IMG_FMT_32bppRGBA1010102,mDisplayRatio,false);
+            ret = appInput.decode(mOutFile) >0?0:2;
+        }else {
+            int half_width = (ALIGN64(width) + 1) / 2;
+            uint8_t* dstY = wView.data()[C2PlanarLayout::PLANE_Y];
+            uint8_t* dstV = wView.data()[C2PlanarLayout::PLANE_V];
+
+            if (decoder.GetColorSpace() == 3 && decoder.GetNumComponents() == 3 &&
+                        decoder.GetVertSampFactor(0) == 2 && decoder.GetHorizSampFactor(0) == 1) {
+                ret = JPEG2NV21(decoder, inBuffer, inSize, dstY, ALIGN64(width) , dstV,
                         half_width * 2, width, height, width, height);
+                ALOGE("JPEG2NV21");
+            }else {
+                decoder.UnloadFrame();
+                ret = libyuv::MJPGToNV21(inBuffer, inSize, dstY, ALIGN64(width) , dstV,
+                            half_width * 2, width, height, width, height);
+            }
         }
         ALOGE("after alloc ret %d",ret);
         if (mExtraData != NULL) {
@@ -511,7 +549,14 @@ void C2Imagedec::process(
         fillEmptyWork(work);
     }
 }
-
+bool C2Imagedec::findEndStart(uint8_t* buffer,int size) {
+    for (int i = 1024; i < (size - 1024); i++) {
+        if (buffer[i] == 0xFF && buffer[i+1] == 0xD9 && buffer[i+2] == 0xFF && buffer[i+3] == 0xD8) {
+            return true;
+        }
+    }
+    return false;
+}
 c2_status_t C2Imagedec::drainInternal(
         uint32_t drainMode,
         const std::shared_ptr<C2BlockPool> &pool,

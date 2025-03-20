@@ -25,10 +25,12 @@
 #include <media/stagefright/foundation/ColorUtils.h>
 #include <SimpleC2Interface.h>
 #include <util/C2InterfaceHelper.h>
-
 #include <C2VendorImgSupport.h>
 #include <C2SoftImageComponent.h>
-
+#include <DisplayAdapter.h>
+namespace meson{
+    class DisplayAdapter;
+}
 
 class AmVideoCodec;
 namespace android {
@@ -38,6 +40,7 @@ namespace android {
 #define ALIGN64(x)                      ((((x) + 63) >> 6) << 6)
 #define ALIGN128(x)                     ((((x) + 127) >> 7) << 7)
 #define MIN(a, b)                       (((a) < (b)) ? (a) : (b))
+using ConnectorType = meson::DisplayAdapter::ConnectorType;
 
 class C2Imagedec : public C2SoftImageComponent {
 public:
@@ -123,7 +126,7 @@ private:
     status_t createDecoder();
     void getVersion();
     status_t initDecoder();
-    c2_status_t ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool, uint64_t platformUsage);
+    c2_status_t ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool, uint32_t format, uint64_t platformUsage);
     void finishWork(uint64_t index, const std::unique_ptr<C2Work> &work);
     status_t setFlushMode();
     c2_status_t drainInternal(
@@ -133,6 +136,7 @@ private:
     status_t resetDecoder();
     void resetPlugin();
     status_t deleteDecoder();
+    bool findEndStart(uint8_t* buffer,int size);
 
     //bool load_ffmpeg_decoder_lib();
    // bool unload_ffmpeg_decoder_lib();
@@ -177,8 +181,9 @@ private:
     nsecs_t mTimeStart = 0;
     nsecs_t mTimeEnd = 0;
     nsecs_t mTimeTotal = 0;
-
+    std::shared_ptr<meson::DisplayAdapter> mDisplayAdapter;
     C2_DO_NOT_COPY(C2Imagedec);
+    float mDisplayRatio;
 };
 
 }  // namespace android
