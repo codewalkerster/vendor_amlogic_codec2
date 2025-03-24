@@ -51,6 +51,7 @@ enum C2AmlParamIndexKind : C2Param::type_index_t {
     kParamIndexVendorScreenFreezeMode,
     kParamIndexVendorPushBlankBuffersOnShutdownInTunnel,
     kParamIndexVendorSetSolidBlackColor,
+    kParamIndexVendorTunerPassthroughStreamControl,
 
     /*these are Audio Decoder config parameters.*/
     kParamIndexVendorAdecCodecId = C2Param:: TYPE_INDEX_VENDOR_START + 0x200,
@@ -266,6 +267,22 @@ struct C2VendorTunerPassthroughPlaybackStatusStruct {
 typedef C2PortParam<C2Setting, C2VendorTunerPassthroughPlaybackStatusStruct, kParamIndexVendorTunerPassthroughPlaybackStatus> C2VendorTunerPassthroughPlaybackStatus;
 constexpr char C2_PARAMKEY_VENDOR_TUNERPASSTHROUGH_PLAYBACK_STATUS[] = "tunerhal.passthrough.playback";
 constexpr char KEY_VENDOR_PLAYBACK_STATUS[] = "vendor.tunerhal.passthrough.playback.status";
+
+struct C2VendorTunerPassthroughStreamControlStruct {
+    inline C2VendorTunerPassthroughStreamControlStruct() = default;
+    inline C2VendorTunerPassthroughStreamControlStruct(int32_t enable, uint64_t pts)
+       :eosEnable(enable), dropPts(pts) {}
+    int32_t eosEnable;
+    uint64_t dropPts;
+    DEFINE_AND_DESCRIBE_C2STRUCT(VendorTunerPassthroughStreamControl)
+    C2FIELD(eosEnable, "eos")
+    C2FIELD(dropPts, "droppts")
+};
+
+typedef C2PortParam<C2Setting, C2VendorTunerPassthroughStreamControlStruct, kParamIndexVendorTunerPassthroughStreamControl> C2VendorTunerPassthroughStreamControl;
+constexpr char C2_PARAMKEY_VENDOR_TUNERPASSTHROUGH_STREAMCONTROL[] = "tunerhal.passthrough.streamcontrol";
+constexpr char KEY_VENDOR_STREAMCONTROL_EOS[] = "tunerhal.passthrough.streamcontrol.eos";
+constexpr char KEY_VENDOR_STREAMCONTROL_DROP_PTS[] = "tunerhal.passthrough.streamcontrol.droppts";
 
 enum VDEC_WORKMODE {
     VDEC_FRAMEMODE,

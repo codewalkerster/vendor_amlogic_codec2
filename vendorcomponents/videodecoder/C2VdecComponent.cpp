@@ -4005,6 +4005,10 @@ void C2VdecComponent::onConfigureTunerPassthroughPlaybackStatus() {
    mTunerPassthroughHelper->setPlaybackStatus();
 }
 
+void C2VdecComponent::onConfigureTunerPassthroughStreamcontrol() {
+   mTunerPassthroughHelper->setStreamControl();
+}
+
 void C2VdecComponent::onConfigureEsModeHwAvsyncId(int32_t avSyncId){
     if (mTunnelHelper) {
         if ((avSyncId & 0x0000FF00) == 0xFF00 || avSyncId == 0x0) {

@@ -55,6 +55,7 @@ public:
     c2_status_t setTransitionPrerollRate();
     c2_status_t setTransitionPrerollAVTolerance();
     c2_status_t setPlaybackStatus();
+    c2_status_t setStreamControl();
 
 private:
     static int notifyTunerPassthroughRenderTimeCallback(void* obj, void* args);

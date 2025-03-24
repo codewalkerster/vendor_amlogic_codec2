@@ -207,9 +207,10 @@ DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionModeAfter::i
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollRate::input, VendorTunerPassthroughTransitionPrerollRate)
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughTransitionPrerollAVTolerance::input, VendorTunerPassthroughTransitionPrerollAVTolerance)
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughPlaybackStatus::input, VendorTunerPassthroughPlaybackStatus)
-DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2ScreenFreezeMode::input, VendorScreenFreezeMode)
+DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2ScreenFreezeMode::input, VendorScreenFreezeMode);
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2PushBlankBuffersOnShutdownInTunnel::input, VendorPushBlankBuffersOnShutdownInTunnel);
 DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2SetSolidBlackColor::input, VendorSetSolidBlackColor);
+DEFINE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughStreamControl::input, VendorTunerPassthroughStreamControl)
 
 c2_status_t C2VdecComponent::IntfImpl::config(
     const std::vector<C2Param*> &params, c2_blocking_t mayBlock,
@@ -272,6 +273,9 @@ c2_status_t C2VdecComponent::IntfImpl::config(
                 break;
             case C2VdecWorkMode::CORE_INDEX:
                 onVdecWorkModeConfigParam();
+                break;
+            case C2VendorTunerPassthroughStreamControl::CORE_INDEX:
+                onTunerPassthroughStreamcontrolConfigParam();
                 break;
             case C2DataSourceType::CORE_INDEX:
                 onDataSourceTypeConfigParam();
@@ -1336,6 +1340,15 @@ void C2VdecComponent::IntfImpl::onTunerPassthroughDeclareParam() {
             C2F(mVendorTunerPassthroughPlaybackStatus, playbackStatus).any()})
     .withSetter(C2_DEFAULT_UNSTRICT_SETTER(VendorTunerPassthroughPlaybackStatus))
     .build());
+
+    addParameter(
+        DefineParam(mVendorTunerPassthroughStreamControl, C2_PARAMKEY_VENDOR_TUNERPASSTHROUGH_STREAMCONTROL)
+        .withDefault(new C2VendorTunerPassthroughStreamControl::input(0, 0))
+        .withFields({
+            C2F(mVendorTunerPassthroughStreamControl, eosEnable).any(),
+            C2F(mVendorTunerPassthroughStreamControl, dropPts).any(),})
+    .withSetter(C2_DEFAULT_UNSTRICT_SETTER(VendorTunerPassthroughStreamControl))
+    .build());
 }
 
 void C2VdecComponent::IntfImpl::onGameModeLatencyDeclareParam() {
@@ -1765,6 +1778,12 @@ void C2VdecComponent::IntfImpl::onTunerPassthroughPlaybackStatusConfigParam() {
     CODEC2_LOG(CODEC2_LOG_INFO, "[%d##%d]tuner passthrough playback status config",
             mComponent->mSessionID, mComponent->mDecoderID);
     mComponent->onConfigureTunerPassthroughPlaybackStatus();
+}
+
+void C2VdecComponent::IntfImpl::onTunerPassthroughStreamcontrolConfigParam() {
+    CODEC2_LOG(CODEC2_LOG_INFO, "[%d##%d]tuner passthrough streamcontrol config",
+            mComponent->mSessionID, mComponent->mDecoderID);
+    mComponent->onConfigureTunerPassthroughStreamcontrol();
 }
 
 void C2VdecComponent::IntfImpl::onVdecWorkModeConfigParam() {

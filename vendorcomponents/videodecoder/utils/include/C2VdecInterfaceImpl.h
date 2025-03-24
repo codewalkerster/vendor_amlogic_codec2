@@ -99,6 +99,7 @@ private:
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2ScreenFreezeMode::input, VendorScreenFreezeMode);
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2PushBlankBuffersOnShutdownInTunnel::input, VendorPushBlankBuffersOnShutdownInTunnel);
     DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2SetSolidBlackColor::input, VendorSetSolidBlackColor);
+    DECLARE_C2_DEFAULT_UNSTRICT_SETTER(C2VendorTunerPassthroughStreamControl::input, VendorTunerPassthroughStreamControl);
 
     std::shared_ptr<C2ApiLevelSetting> mApiLevel;
     std::shared_ptr<C2ApiFeaturesSetting> mApiFeatures;
@@ -189,6 +190,7 @@ private:
     std::shared_ptr<C2VendorTunerPassthroughTransitionPrerollRate::input> mVendorTunerPassthroughTransitionPrerollRate;
     std::shared_ptr<C2VendorTunerPassthroughTransitionPrerollAVTolerance::input> mVendorTunerPassthroughPrerollAVTolerance;
     std::shared_ptr<C2VendorTunerPassthroughPlaybackStatus::input> mVendorTunerPassthroughPlaybackStatus;
+    std::shared_ptr<C2VendorTunerPassthroughStreamControl::input> mVendorTunerPassthroughStreamControl;
 
     std::shared_ptr<C2SecureModeTuning> mSecureBufferMode;
     std::shared_ptr<C2GlobalLowLatencyModeTuning> mLowLatencyMode;
@@ -262,6 +264,7 @@ private:
     void onTunerPassthroughTransitionModeAfterConfigParam();
     void onTunerPassthroughTransitionPrerollRateConfigParam();
     void onTunerPassthroughTransitionPrerollAVToleranceConfigParam();
+    void onTunerPassthroughStreamcontrolConfigParam();
     void onTunerPassthroughPlaybackStatusConfigParam();
     void onVdecWorkModeConfigParam();
     void onDataSourceTypeConfigParam();

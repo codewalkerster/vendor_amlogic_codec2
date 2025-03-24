@@ -348,6 +348,29 @@ c2_status_t C2VdecComponent::TunerPassthroughHelper::setPlaybackStatus() {
     return C2_OK;
 }
 
+c2_status_t C2VdecComponent::TunerPassthroughHelper::setStreamControl() {
+    LockWeakPtrWithReturnVal(comp, mComp, C2_BAD_VALUE);
+    LockWeakPtrWithReturnVal(intfImpl, mIntfImpl, C2_BAD_VALUE);
+
+    int32_t mEosEnable = intfImpl->mVendorTunerPassthroughStreamControl->eosEnable;
+    uint64_t mDropPts = intfImpl->mVendorTunerPassthroughStreamControl->dropPts;
+
+    passthroughParams configParam;
+    memset(&configParam, 0, sizeof(passthroughParams));
+
+    if (mEosEnable) {
+        configParam.param1 = mEosEnable;
+        mTunerPassthrough->SetPassthroughParams(AM_PASSTHROUGH_PARAM_INJECT_DONE_WAIT_EOS, &configParam);
+    }
+
+    if (mDropPts != 0) {
+        configParam.param1 = mDropPts;
+        mTunerPassthrough->SetPassthroughParams(AM_PASSTHROUGH_PARAM_VIDEO_DROP_PTS, &configParam);
+    }
+
+    return C2_OK;
+}
+
 void C2VdecComponent::TunerPassthroughHelper::onNotifyRenderTimeTunerPassthrough(struct renderTime rendertime) {
     LockWeakPtrWithReturnVoid(comp, mComp);
     scoped_refptr<::base::SingleThreadTaskRunner> taskRunner = comp->GetTaskRunner();

@@ -186,6 +186,7 @@ public:
     void onConfigureTunerPassthroughPlaybackStatus();
     void onConfigurePushBlankBuffersOnShutdownInTunnel(int32_t value);
     void onConfigureSetSolidBlackColor(int32_t value);
+    void onConfigureTunerPassthroughStreamcontrol();
     //for out use
     bool isAmDolbyVision() {return mIsDolbyVision;}
     bool isSecureMode() {return mSecureMode;}
