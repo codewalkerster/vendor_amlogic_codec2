@@ -56,6 +56,7 @@ public:
     bool sendVideoFrame(renderframe* frame);
     bool pushBlankBuffersOnShutdownInTunnel(int32_t value);
     bool setSolidBlackColor(int32_t value);
+    bool setLowLatencyModeToTunnel(bool value);
 
 private:
     VideoTunnelRendererBase* mVideoTunnelRenderer;

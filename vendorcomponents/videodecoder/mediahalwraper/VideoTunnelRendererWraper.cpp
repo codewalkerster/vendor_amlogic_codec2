@@ -252,4 +252,17 @@ bool VideoTunnelRendererWraper::setSolidBlackColor(int32_t value) {
     return true;
 }
 
+bool VideoTunnelRendererWraper::setLowLatencyModeToTunnel(bool value) {
+    AmlMessageBase* msg = VideoTunnelRenderer_getAmlMessage();
+    if (msg == NULL) {
+        CODEC2_LOG(CODEC2_LOG_ERR, "%s msg == NULL",__func__);
+        return false;
+    }
+    CODEC2_LOG(CODEC2_LOG_INFO, "%s",__func__);
+    msg->setInt32("lowlatency", value);
+    postAndReplyMsg(msg);
+    delete msg;
+    return true;
+}
+
 }

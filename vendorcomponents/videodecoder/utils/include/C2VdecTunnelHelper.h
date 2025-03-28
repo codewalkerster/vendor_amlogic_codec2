@@ -56,6 +56,7 @@ public:
     bool setPlayerInfo(playerInfo* info);
     bool pushBlankBuffersOnShutdownInTunnel(int32_t value);
     bool setSolidBlackColor(int32_t value);
+    bool setLowLatencyModeToTunnel(bool isLowlatency);
 
 private:
     static int fillVideoFrameCallback2(void* obj, void* args);

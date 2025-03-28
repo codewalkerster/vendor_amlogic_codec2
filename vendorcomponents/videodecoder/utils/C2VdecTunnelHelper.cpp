@@ -853,4 +853,11 @@ bool C2VdecComponent::TunnelHelper::setSolidBlackColor(int32_t value) {
     return C2_OK;
 }
 
+bool C2VdecComponent::TunnelHelper::setLowLatencyModeToTunnel(bool isLowlatency) {
+    if (mVideoTunnelRenderer) {
+        mVideoTunnelRenderer->setLowLatencyModeToTunnel(isLowlatency);
+    }
+    return C2_OK;
+}
+
 }

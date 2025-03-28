@@ -636,6 +636,9 @@ void C2VdecComponent::onStart(media::VideoCodecProfile profile, ::base::Waitable
         if (mIntfImpl->mSetSolidBlackColor->value) {
             mTunnelHelper->setSolidBlackColor(mIntfImpl->mSetSolidBlackColor->value);
         }
+        if (mDeviceUtil->isLowLatencyMode()) {
+            mTunnelHelper->setLowLatencyModeToTunnel(true);
+        }
     }
     if (isTunnerPassthroughMode() && mTunerPassthroughHelper) {
         mTunerPassthroughHelper->start();
