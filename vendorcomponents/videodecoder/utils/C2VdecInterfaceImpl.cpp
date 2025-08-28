@@ -1455,12 +1455,21 @@ void C2VdecComponent::IntfImpl::onBufferSizeDeclareParam(const char* mine) {
                 me.set().value = defaultSize;
             }
 
-            //app may set too small
-            if (((size.v.width * size.v.height) > (1920 * 1088))
-                && (me.set().value < maxInputSize)) {
-                me.set().value = maxInputSize;
+            // app may set too small
+            // for cts case like: testReclaimResource[9_c2.amlogic.av1.decoder_video/av01_2,048_1,024]
+            // since we usually support 9 HW decoder instances, if every instance allocate the input size as max (8M)
+            // with 8 buffers, this case will create max 9 instances, so it will use up to 8*8*9 =576M
+            // it will cause lowmemorykill kill the cts process very easily, then cts test abort.
+            // if resolution between (1920*1088) and (2048 * 1024), set max input size to 3M
+            uint32_t frameSize = size.v.width * size.v.height;
+            if ((frameSize > (1920 * 1088)) && (me.set().value < maxInputSize)) {
+                if (frameSize <=(2048 * 1024) && frameSize > (1920 * 1088)) {
+                    me.set().value = 3 * kLinearBufferSize;
+                } else {
+                    me.set().value = maxInputSize;
+                }
             }
-
+            CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"set input buffer size = %u", me.set().value);
             return C2R::Ok();
         }
     };

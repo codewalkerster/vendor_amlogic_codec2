@@ -688,10 +688,21 @@ bool C2VdecCodecConfig::isMaxResolutionFromXml(C2VendorCodec codec_type, bool se
     int32_t maxSize = codecAttributes.blockCount.max * codecAttributes.blockSize.h * codecAttributes.blockSize.w;
     CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2, "%s name:%s  max size:%d", __func__, name,  maxSize);
     /*Now only check max resolution defined from media_codec xml*/
-    if ((width * height) == maxSize) {
-        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s use Max Resolution.", name);
+    if (isCodecSupport8k(codec_type, secure)) {
+        if ((width * height) >= 7680 * 4320) {
+            CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s use max resolution 8K", name);
+            return true;
+        }
+    } else if (isCodecSupport4k(codec_type, secure)) {
+        if ((width * height) >= 3840*2160) {
+            CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s use max resolution 4K", name);
+            return true;
+        }
+    } else if ((width * height) >= 1920*1080) {
+        CODEC2_LOG(CODEC2_LOG_DEBUG_LEVEL2,"%s use max resolution 2K", name);
         return true;
     }
+
     return false;
 }
 
