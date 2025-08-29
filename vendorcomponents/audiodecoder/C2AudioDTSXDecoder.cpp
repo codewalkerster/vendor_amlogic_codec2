@@ -36,13 +36,10 @@
 #include "C2AudioDTSXDecoder.h"
 #include "aml_dtsx_decoder_api.h"
 #include "C2VendorConfig.h"
+#include "AmlAudioCommon.h"
 
-#define LOGE ALOGE
-#define LOGI ALOGI
-#define LOGW ALOGW
-#define LOGD ALOGD
-#define LOGV ALOGV
-#define LOG_LINE() ALOGD("[%s:%d]", __FUNCTION__, __LINE__);
+
+#define LOG_LINE() C2AUDIO_LOGD("[%s:%d]", __FUNCTION__, __LINE__);
 
 #define UNUSED(expr)  \
     do {              \
@@ -166,7 +163,7 @@ namespace android {
 
 static const char *ConvertComponentRoleToMimeType(const char *componentRole) {
     if (componentRole == NULL) {
-        ALOGE("ConvertComponentRoleToMime componentRole is NULL!");
+        C2AUDIO_LOGE("ConvertComponentRoleToMime componentRole is NULL!");
         return "NA";
     }
     if (strstr(componentRole, "dts")) {
@@ -178,7 +175,7 @@ static const char *ConvertComponentRoleToMimeType(const char *componentRole) {
     } else if(strstr(componentRole, "dtsuhd")) {
         return const_cast<char*>("audio/vnd.dts.uhd;profile=p2");
     } else {
-        ALOGE("Not support %s yet, need to add!", componentRole);
+        C2AUDIO_LOGE("Not support %s yet, need to add!", componentRole);
         return "NA";
     }
 }
@@ -190,10 +187,10 @@ static void dump(const char * path, char *data, int size)
     if (fp != NULL) {
         size_t  write_size = fwrite(data, sizeof(char), (size_t)size, fp);
         if (write_size != (size_t)size)
-            ALOGE("error: write data to file failed[want:%d]-[ret:%zu]-[strerror(errno):%s]\n", size, write_size, strerror(errno));
+            C2AUDIO_LOGE("error: write data to file failed[want:%d]-[ret:%zu]-[strerror(errno):%s]\n", size, write_size, strerror(errno));
         fclose(fp);
     }else
-        ALOGE("error: open file failed\n");
+        C2AUDIO_LOGE("error: open file failed\n");
 }
 
 class C2AudioDTSXDecoder::IntfImpl : public AudioDecInterface<void>::BaseParams {
@@ -293,7 +290,7 @@ C2AudioDTSXDecoder::C2AudioDTSXDecoder(
     adec_call(false)
 {
 
-    ALOGV("%s() %d  name:%s", __func__, __LINE__, name);
+    C2AUDIO_LOGV("%s() %d  name:%s", __func__, __LINE__, name);
     {
         AutoMutex l(mSetUpLock);
         initializeState_l();
@@ -314,7 +311,7 @@ C2AudioDTSXDecoder::C2AudioDTSXDecoder(
     memset(&pcm_out_info, 0, sizeof(pcm_out_info));
     mOutputBuffer = (char *)malloc(DTSX_OUT_BUFFER_SIZE);
     if (mOutputBuffer == NULL) {
-        ALOGE("%s() dts output buffer malloc fail", __func__);
+        C2AUDIO_LOGE("%s() dts output buffer malloc fail", __func__);
     } else {
         memset(mOutputBuffer, 0, DTSX_OUT_BUFFER_SIZE);
     }
@@ -322,19 +319,10 @@ C2AudioDTSXDecoder::C2AudioDTSXDecoder(
 
 /*coverity[exn_spec_violation]*/
 C2AudioDTSXDecoder::~C2AudioDTSXDecoder() {
-    ALOGV("%s() %d", __func__, __LINE__);
+    C2AUDIO_LOGV("%s() %d", __func__, __LINE__);
     onRelease();
 
-    if (mConfig != NULL) {
-        if (mOutputBuffer != NULL) {
-            free(mOutputBuffer);
-            mOutputBuffer = NULL;
-        }
-        free(mConfig);
-        mConfig = NULL;
-    }
-
-    LOGV("%s() %d  exit", __func__, __LINE__);
+    C2AUDIO_LOGV("%s() %d  exit", __func__, __LINE__);
 }
 int C2AudioDTSXDecoder::_dtsx_pcm_output()
 {
@@ -344,11 +332,11 @@ int C2AudioDTSXDecoder::_dtsx_pcm_output()
     int ret = 0;
     ret = _aml_dts_postprocess_get_out_info(mConfig->p_dtsx_pp_inst, DTSX_OUTPUT_SPK, &nSampleRate, &nChannel, &nBitWidth);
     if (ret != 0) {
-        ALOGE("[%s:%d] _aml_dts_postprocess_get_out_info fail:%d", __func__, __LINE__, ret);
+        C2AUDIO_LOGE("[%s:%d] _aml_dts_postprocess_get_out_info fail:%d", __func__, __LINE__, ret);
     } else {
         if ((nSampleRate > 0 && nSampleRate <= 192000 && nSampleRate != mConfig->samplerate)
             || (nChannel > 0 && nChannel <= 8 && nChannel != mConfig->channels)) {
-            ALOGI("decoder sample rate changed from %d to %d ,ch num changed from %d to %d ",
+            C2AUDIO_LOGI("decoder sample rate changed from %d to %d ,ch num changed from %d to %d ",
                 mConfig->samplerate, nSampleRate, mConfig->channels, nChannel);
             mConfig->samplerate = nSampleRate;
             mConfig->channels = nChannel;
@@ -361,7 +349,7 @@ int C2AudioDTSXDecoder::_dtsx_pcm_output()
     if (mConfig->debug_dump == 1)
         dump("/data/tmp/omx_dtsx_audio_pcmout.pcm", mConfig->pOutput, mConfig->outputlen);
     if (mConfig->debug_print == 1) {
-        ALOGD("pcm_spk_output: length:%d sr:%d ch:%d",
+        C2AUDIO_LOGD("pcm_spk_output: length:%d sr:%d ch:%d",
             mConfig->outputlen,
             mConfig->samplerate,
             mConfig->channels);
@@ -378,11 +366,11 @@ int C2AudioDTSXDecoder::_dtsx_raw_output()
 
     ret = _aml_dts_postprocess_get_out_info(mConfig->p_dtsx_pp_inst, DTSX_OUTPUT_RAW, &nSampleRate, &nChannel, &nBitWidth);
     if (ret != 0) {
-        ALOGE("[%s:%d] _aml_dts_postprocess_get_out_info fail:%d", __func__, __LINE__, ret);
+        C2AUDIO_LOGE("[%s:%d] _aml_dts_postprocess_get_out_info fail:%d", __func__, __LINE__, ret);
     } else {
         if ((nSampleRate > 0 && nSampleRate <= 192000 && nSampleRate != mConfig->samplerate)
             || (nChannel > 0 && nChannel <= 8 && nChannel != mConfig->channels)) {
-            ALOGI("decoder sample rate changed from %d to %d ,ch num changed from %d to %d ",
+            C2AUDIO_LOGI("decoder sample rate changed from %d to %d ,ch num changed from %d to %d ",
                 mConfig->samplerate, nSampleRate, mConfig->channels, nChannel);
             mConfig->samplerate = nSampleRate;
             mConfig->channels = nChannel;
@@ -396,7 +384,7 @@ int C2AudioDTSXDecoder::_dtsx_raw_output()
     if (mConfig->debug_dump == 1)
         dump("/data/tmp/omx_dtsx_audio_rawout.pcm", mConfig->pOutput, mConfig->outputlen);
     if (mConfig->debug_print == 1) {
-        ALOGD("raw_output: length:%d sr:%d ch:%d",
+        C2AUDIO_LOGD("raw_output: length:%d sr:%d ch:%d",
             mConfig->outputlen,
             mConfig->samplerate,
             mConfig->channels);
@@ -417,7 +405,7 @@ int C2AudioDTSXDecoder::_aml_dtsx_dualcore_init()
 
     ret = (_aml_dts_decoder_init)(&mConfig->p_dtsx_dec_inst, cmd_count, (const char **)(mConfig->init_argv));
     if (ret != 0) {
-        ALOGE("_aml_dts_decoder_init fail:%d", ret);
+        C2AUDIO_LOGE("_aml_dts_decoder_init fail:%d", ret);
         goto DTSX_DUALCORE_INIT_FAIL;
     }
 
@@ -469,11 +457,11 @@ int C2AudioDTSXDecoder::_aml_dtsx_dualcore_init()
 
     ret = (_aml_dts_postprocess_init)(&mConfig->p_dtsx_pp_inst, cmd_count, (const char **)(mConfig->init_argv));
     if (ret != 0) {
-        ALOGE("_aml_dts_decoder_process fail:%d", ret);
+        C2AUDIO_LOGE("_aml_dts_decoder_process fail:%d", ret);
         goto DTSX_DUALCORE_INIT_FAIL;
     }
 
-    ALOGI("[%s:%d] out", __func__, __LINE__);
+    C2AUDIO_LOGI("[%s:%d] out", __func__, __LINE__);
     return 0;
 
 DTSX_DUALCORE_INIT_FAIL:
@@ -491,6 +479,7 @@ bool C2AudioDTSXDecoder::tearDown() {
     if (mSetUp) {
         tearDownAudioDecoder_l();
     }
+    mSetUp = false;
     return true;
 }
 
@@ -500,7 +489,7 @@ void C2AudioDTSXDecoder::initializeState_l() {
         AutoMutex l(mConfigLock);
         mConfig = (DTSXDecoderExternal *)malloc(sizeof(DTSXDecoderExternal));
         if (mConfig == NULL) {
-            ALOGE("malloc err");
+            C2AUDIO_LOGE("malloc err");
             return ;
         } else {
             memset(mConfig, 0, sizeof(DTSXDecoderExternal));
@@ -514,7 +503,7 @@ void C2AudioDTSXDecoder::initializeState_l() {
             mConfig->init_argc = 0;
             mConfig->init_argv[0] = (char *)malloc(DTSX_PARAM_COUNT_MAX * DTSX_PARAM_STRING_LEN);
             if (mConfig->init_argv[0] == NULL) {
-                ALOGE("%s malloc argv memory failed!", __func__);
+                C2AUDIO_LOGE("%s malloc argv memory failed!", __func__);
                 return;
             } else {
                 memset(mConfig->init_argv[0], 0, DTSX_PARAM_COUNT_MAX * DTSX_PARAM_STRING_LEN);
@@ -622,7 +611,7 @@ void C2AudioDTSXDecoder::drainOutBuffer(
         int numFrames = outInfo.decodedSizes.size();
         int outputDataSize =  mConfig->outputlen;
         if (mConfig->debug_print) {
-            ALOGI("%s outputDataSize:%d,  outInfo numFrames:%d,frameIndex = %" PRIu64 "",__func__, outputDataSize, numFrames, outInfo.frameIndex);
+            C2AUDIO_LOGI("%s outputDataSize:%d,  outInfo numFrames:%d,frameIndex = %" PRIu64 "",__func__, outputDataSize, numFrames, outInfo.frameIndex);
         }
 
         std::shared_ptr<C2LinearBlock> block;
@@ -650,7 +639,7 @@ void C2AudioDTSXDecoder::drainOutBuffer(
                 size_t bufferSize = mConfig->outputlen;
                 c2_status_t err = pool->fetchLinearBlock(bufferSize, usage, &block);
                 if (err != C2_OK) {
-                    ALOGE("failed to fetch a linear block (%d)", err);
+                    C2AUDIO_LOGE("failed to fetch a linear block (%d)", err);
                     return std::bind(fillEmptyWork, _1, C2_NO_MEMORY);
                 }
                 C2WriteView wView = block->map().get();
@@ -681,7 +670,7 @@ void C2AudioDTSXDecoder::drainOutBuffer(
         mBuffersInfo.pop_front();
         if (mConfig->debug_print) {
             /*coverity[use_after_free]*/
-            ALOGV("%s  mBuffersInfo is %s, out timestamp %" PRIu64 " / %u", __func__, mBuffersInfo.empty()?"null":"not null", outInfo.timestamp, block ? block->capacity() : 0);
+            C2AUDIO_LOGV("%s  mBuffersInfo is %s, out timestamp %" PRIu64 " / %u", __func__, mBuffersInfo.empty()?"null":"not null", outInfo.timestamp, block ? block->capacity() : 0);
         }
     }
 }
@@ -702,7 +691,7 @@ void C2AudioDTSXDecoder::process(
 
     bool eos = (work->input.flags & C2FrameData::FLAG_END_OF_STREAM) != 0;
     if (mConfig->debug_print) {
-        ALOGI("%s input.flags:0x%x  eos:%d", __func__, work->input.flags, eos);
+        C2AUDIO_LOGI("%s input.flags:0x%x  eos:%d", __func__, work->input.flags, eos);
     }
 
     uint8* inBuffer = NULL;
@@ -722,7 +711,7 @@ void C2AudioDTSXDecoder::process(
     inInfo.bufferSize = inBuffer_nFilledLen;
     inInfo.decodedSizes.clear();
     if (mConfig->debug_print) {
-        ALOGI("%s() inInfo.bufferSize:%zu, frameIndex:%" PRIu64 ", timestamp:%" PRIu64 "", __func__, inInfo.bufferSize, inInfo.frameIndex, inInfo.timestamp);
+        C2AUDIO_LOGI("%s() inInfo.bufferSize:%zu, frameIndex:%" PRIu64 ", timestamp:%" PRIu64 "", __func__, inInfo.bufferSize, inInfo.frameIndex, inInfo.timestamp);
     }
 
     if (inBuffer_nFilledLen) {
@@ -748,19 +737,19 @@ void C2AudioDTSXDecoder::process(
                                          mConfig->a_dtsx_pp_output,
                                          (unsigned int *)&mConfig->outputlen_pcm);
         if ((ret != 0) || (mConfig->outputlen_pcm == 0)) {
-            ALOGW("[%s:%d] dtsx decode fail:%d, outlen_pcm:%d", __func__, __LINE__, ret, mConfig->outputlen_pcm);
+            C2AUDIO_LOGW("[%s:%d] dtsx decode fail:%d, outlen_pcm:%d", __func__, __LINE__, ret, mConfig->outputlen_pcm);
             mConfig->outputlen_pcm = 0;
         } else {
             if (ret == 0) {
                 ret = (_aml_dts_metadata_update)(mConfig->p_dtsx_dec_inst, mConfig->p_dtsx_pp_inst);
             } else {
-                ALOGW("[%s:%d] dtsx metadata update fail:%d", __func__, __LINE__, ret);
+                C2AUDIO_LOGW("[%s:%d] dtsx metadata update fail:%d", __func__, __LINE__, ret);
             }
             if (mConfig->outputlen_pcm > mConfig->core1_out_buff_size) {
-                ALOGI("[%s:%d] realloc decode buffer from (%d) to (%u)", __func__, __LINE__, mConfig->core1_out_buff_size, mConfig->outputlen_pcm);
+                C2AUDIO_LOGI("[%s:%d] realloc decode buffer from (%d) to (%u)", __func__, __LINE__, mConfig->core1_out_buff_size, mConfig->outputlen_pcm);
                 mConfig->core1_out_pcm = (char *)realloc(mConfig->core1_out_pcm, mConfig->outputlen_pcm);
                 if (mConfig->core1_out_pcm == NULL) {
-                    ALOGE("[%s:%d] realloc for decode buffer(%u) failed", __func__, __LINE__, mConfig->outputlen_pcm);
+                    C2AUDIO_LOGE("[%s:%d] realloc for decode buffer(%u) failed", __func__, __LINE__, mConfig->outputlen_pcm);
                     return;
                 }
                 mConfig->core1_out_buff_size = mConfig->outputlen_pcm;
@@ -777,7 +766,7 @@ void C2AudioDTSXDecoder::process(
                     _dtsx_raw_output();
                 }
             } else {
-                ALOGE("[%s:%d] dtsx post process fail:%d", __func__, __LINE__, ret);
+                C2AUDIO_LOGE("[%s:%d] dtsx post process fail:%d", __func__, __LINE__, ret);
             }
 
             ret = (_aml_dts_postprocess_get_out_info)(mConfig->p_dtsx_pp_inst, DTSX_OUTPUT_SPK,
@@ -785,10 +774,10 @@ void C2AudioDTSXDecoder::process(
                                                 &pcm_out_info.channel_num,
                                                 &bits_per_sample);
             if (ret != 0) {
-                ALOGW("[%s:%d] _aml_dts_postprocess_get_out_info fail:%d", __func__, __LINE__, ret);
+                C2AUDIO_LOGW("[%s:%d] _aml_dts_postprocess_get_out_info fail:%d", __func__, __LINE__, ret);
             }
             if (mConfig->debug_print == 1) {
-                ALOGI("pcm_out_info.sample_rate=%d, pcm_out_info.channel_num=%d",pcm_out_info.sample_rate, pcm_out_info.channel_num);
+                C2AUDIO_LOGI("pcm_out_info.sample_rate=%d, pcm_out_info.channel_num=%d",pcm_out_info.sample_rate, pcm_out_info.channel_num);
             }
         }
         mConfig->outputlen_frames = mConfig->outputlen / mConfig->channels;//total decoded frames
@@ -809,10 +798,10 @@ void C2AudioDTSXDecoder::process(
         mBuffersInfo.push_back(std::move(inInfo));
     }
     if (!pcm_out_info.sample_rate || !pcm_out_info.channel_num) {
-        ALOGW("%s Invalid dts frame", __func__);
+        C2AUDIO_LOGW("%s Invalid dts frame", __func__);
     } else if ((pcm_out_info.sample_rate != prevSampleRate) ||
                (pcm_out_info.channel_num != prevNumChannels)) {
-        ALOGI("Reconfiguring decoder: %d->%d Hz, %d->%d channels",
+        C2AUDIO_LOGI("Reconfiguring decoder: %d->%d Hz, %d->%d channels",
               prevSampleRate, pcm_out_info.sample_rate,
               prevNumChannels, pcm_out_info.channel_num);
 
@@ -831,7 +820,7 @@ void C2AudioDTSXDecoder::process(
             output.configUpdate.push_back(C2Param::Copy(channelCountInfo));
             output.configUpdate.push_back(C2Param::Copy(channelMaskInfo));
         } else {
-            ALOGE("Config Update failed");
+            C2AUDIO_LOGE("Config Update failed");
             work->result = C2_CORRUPTED;
             return;
         }
@@ -869,94 +858,94 @@ bool C2AudioDTSXDecoder::load_dtsx_decoder_lib(const char *filename){
     //open 32bit so failed, here try to open the 64bit dtsx so.
     if (gDtsxDecoderLibHandler == NULL) {
         gDtsxDecoderLibHandler = dlopen(DTSX_LIB64_PATH_A, RTLD_NOW);
-        ALOGI("%s, 64bit lib:%s, gDtsxDecoderLibHandler:%p\n", __FUNCTION__, DTSX_LIB64_PATH_A, gDtsxDecoderLibHandler);
+        C2AUDIO_LOGI("%s, 64bit lib:%s, gDtsxDecoderLibHandler:%p\n", __FUNCTION__, DTSX_LIB64_PATH_A, gDtsxDecoderLibHandler);
     }
     if (!gDtsxDecoderLibHandler) {
-        ALOGE("%s, failed to open (libHwAudio_dtsx.so), %s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s, failed to open (libHwAudio_dtsx.so), %s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[gDtsxDecoderLibHandler]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[gDtsxDecoderLibHandler]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_decoder_init = (int (*)(void **, unsigned int, const char **))dlsym(gDtsxDecoderLibHandler, "dtsx_decoder_init");
     if (_aml_dts_decoder_init == NULL) {
-        ALOGE("%s,can't find decoder lib,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can't find decoder lib,%s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[dts_decoder_init:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_decoder_init:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_decoder_process = (int (*)(void *, const unsigned char *, unsigned int, unsigned char **,unsigned int *))dlsym(gDtsxDecoderLibHandler, "dtsx_decoder_process");
     if (_aml_dts_decoder_process == NULL) {
-        ALOGE("%s,can't find decoder lib,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can't find decoder lib,%s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[dts_decoder_process:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_decoder_process:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_decoder_deinit = (int (*)(void *))dlsym(gDtsxDecoderLibHandler, "dtsx_decoder_deinit");
     if (_aml_dts_decoder_deinit == NULL) {
-        ALOGE("%s,can't find decoder lib,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can't find decoder lib,%s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[dts_decoder_deinit:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_decoder_deinit:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_decoder_get_output_info = (int (*)(void *, int, int *, int *, int *))dlsym(gDtsxDecoderLibHandler, "dtsx_decoder_get_out_info");
     if (_aml_dts_decoder_get_output_info == NULL) {
-        ALOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[dts_decoder_getinfo:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_decoder_getinfo:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_postprocess_init = (int (*)(void **, unsigned int, const char **))dlsym(gDtsxDecoderLibHandler, "dtsx_postprocess_init");
     if (_aml_dts_postprocess_init == NULL) {
-        ALOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[dts_postprocess_init:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_postprocess_init:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_postprocess_deinit = (int (*)(void *))dlsym(gDtsxDecoderLibHandler, "dtsx_postprocess_deinit");
     if (_aml_dts_postprocess_deinit == NULL) {
-        ALOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[dts_postprocess_deinit:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_postprocess_deinit:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_postprocess_proc = (int (*)(void *, const unsigned char *, unsigned int, unsigned char **,unsigned int *))dlsym(gDtsxDecoderLibHandler, "dtsx_postprocess_proc");
     if (_aml_dts_postprocess_proc == NULL) {
-        ALOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[dts_postprocess_proc:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_postprocess_proc:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_metadata_update = (int (*)(void *, void *))dlsym(gDtsxDecoderLibHandler, "dtsx_metadata_update");
     if (_aml_dts_metadata_update == NULL) {
-        ALOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can not find decoder getinfo function,%s\n", __FUNCTION__, dlerror());
         return false;
     } else {
-        ALOGV("<%s::%d>--[dts_metadata_update:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_metadata_update:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_postprocess_get_out_info = (int (*)(void *, int, int *, int *, int *))dlsym(gDtsxDecoderLibHandler, "dtsx_postprocess_get_out_info");
     if (_aml_dts_postprocess_get_out_info == NULL) {
-        ALOGE("%s,can not find postprocess getinfo function,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can not find postprocess getinfo function,%s\n", __FUNCTION__, dlerror());
     } else {
-        ALOGV("<%s::%d>--[dts_postprocess_getinfo:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_postprocess_getinfo:]", __FUNCTION__, __LINE__);
     }
 
     _aml_dts_postprocess_dynamic_parameter_set = (int (*)(void *, unsigned int, const char **))dlsym(gDtsxDecoderLibHandler, "dtsx_postprocess_dynamic_parameter_set");
     if (_aml_dts_postprocess_dynamic_parameter_set == NULL) {
-        ALOGE("%s,can not find postprocess dynamic_parameter_set function,%s\n", __FUNCTION__, dlerror());
+        C2AUDIO_LOGE("%s,can not find postprocess dynamic_parameter_set function,%s\n", __FUNCTION__, dlerror());
     } else {
-        ALOGV("<%s::%d>--[dts_postprocess_dynamic_parameter_set:]", __FUNCTION__, __LINE__);
+        C2AUDIO_LOGV("<%s::%d>--[dts_postprocess_dynamic_parameter_set:]", __FUNCTION__, __LINE__);
     }
 
-    ALOGI("[%s:%d] out", __func__, __LINE__);
+    C2AUDIO_LOGI("[%s:%d] out", __func__, __LINE__);
     return true;
 }
 
@@ -966,13 +955,13 @@ bool C2AudioDTSXDecoder::setUpAudioDecoder_l() {
         mConfig->debug_print = 0;
         mConfig->debug_dump = 0;
         memset(value, 0, sizeof(value));
-        if ((property_get("vendor.media.c2.audio.debug", value, NULL) > 0) &&
+        if ((property_get(C2_PROPERTY_AUDIO_DECODER_DEBUG, value, NULL) > 0) &&
             (!strcmp(value,"1") || !strcmp(value,"true")) ) {
             mConfig->debug_print = 1;
         }
 
         memset(value, 0, sizeof(value));
-        if ((property_get("vendor.media.c2.audio.dump", value, NULL) > 0) &&
+        if ((property_get(C2_PROPERTY_AUDIO_DECODER_DUMP, value, NULL) > 0) &&
             (!strcmp(value,"1") || !strcmp(value,"true")) ) {
             mConfig->debug_dump = 1;
         }
@@ -985,7 +974,7 @@ bool C2AudioDTSXDecoder::setUpAudioDecoder_l() {
             mConfig->digital_raw = nPassThroughEnable;
             adec_call = false;
         }
-        ALOGI("mConfig->digital_raw:%d ", mConfig->digital_raw);
+        C2AUDIO_LOGI("mConfig->digital_raw:%d ", mConfig->digital_raw);
         // When digital_raw=3, omx will bypass audio es. No need to init decoder.
         if (mConfig->digital_raw != 3) {
             _aml_dtsx_dualcore_init();
@@ -1000,7 +989,17 @@ bool C2AudioDTSXDecoder::setUpAudioDecoder_l() {
 bool C2AudioDTSXDecoder::tearDownAudioDecoder_l() {
     LOG_LINE();
 
-    if (mConfig) {
+    if (_aml_dts_decoder_deinit && mConfig->p_dtsx_dec_inst) {
+        (_aml_dts_decoder_deinit)(mConfig->p_dtsx_dec_inst);
+        mConfig->p_dtsx_dec_inst = NULL;
+    }
+
+    if (_aml_dts_postprocess_deinit && mConfig->p_dtsx_pp_inst) {
+        (_aml_dts_postprocess_deinit)(mConfig->p_dtsx_pp_inst);
+        mConfig->p_dtsx_pp_inst = NULL;
+    }
+
+    if (mConfig != NULL) {
         if (mConfig->core1_out_pcm) {
             free(mConfig->core1_out_pcm);
             mConfig->core1_out_pcm = NULL;
@@ -1009,15 +1008,18 @@ bool C2AudioDTSXDecoder::tearDownAudioDecoder_l() {
             free(mConfig->init_argv[0]);
             mConfig->init_argv[0] = NULL;
         }
-    }
 
-    if (mConfig != NULL) {
+        if (mOutputBuffer != NULL) {
+            free(mOutputBuffer);
+            mOutputBuffer = NULL;
+        }
+
         free(mConfig);
         mConfig = NULL;
     }
+
     if (gDtsxDecoderLibHandler != NULL)
         unload_dtsx_decoder_lib();
-    return true;
 
     return true;
 }
@@ -1033,16 +1035,16 @@ status_t C2AudioDTSXDecoder::initDecoder() {
     LOG_LINE();
     AutoMutex l(mSetUpLock);
     if (mSetUp) {
-        ALOGW("Trying to set up stream when you already have.");
+        C2AUDIO_LOGW("Trying to set up stream when you already have.");
         return OK;
     }
     if (!setUpAudioDecoder_l()) {
         LOG_LINE();
-        ALOGE("setUpDTSXAudioDecoder_l failed.");
+        C2AUDIO_LOGE("setUpDTSXAudioDecoder_l failed.");
         tearDownAudioDecoder_l();
         return C2_OMITTED;
     }
-    ALOGI("C2AudioDTSXDecoder setUp done\n");
+    C2AUDIO_LOGI("C2AudioDTSXDecoder setUp done\n");
     mSetUp = true;
 
     status = OK;
@@ -1102,7 +1104,7 @@ public:
             std::shared_ptr<C2Component>* const component,
             std::function<void(C2Component*)> deleter) override {
             UNUSED(deleter);
-            ALOGI("in %s, mDecoderName:%s", __func__, mDecoderName.c_str());
+            C2AUDIO_LOGI("in %s, mDecoderName:%s", __func__, mDecoderName.c_str());
         *component = std::shared_ptr<C2Component>(
                 new C2AudioDTSXDecoder(mDecoderName.c_str(),
                               id,
@@ -1113,7 +1115,7 @@ public:
     virtual c2_status_t createInterface(
             c2_node_id_t id, std::shared_ptr<C2ComponentInterface>* const interface,
             std::function<void(C2ComponentInterface*)> deleter) override {
-            //ALOGI("in %s, id:%d,  start to create C2ComponentInterface", __func__, id);
+            //C2AUDIO_LOGI("in %s, id:%d,  start to create C2ComponentInterface", __func__, id);
             UNUSED(deleter);
         *interface = std::shared_ptr<C2ComponentInterface>(
                 new AudioDecInterface<C2AudioDTSXDecoder::IntfImpl>(

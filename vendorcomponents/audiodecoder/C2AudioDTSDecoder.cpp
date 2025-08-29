@@ -214,20 +214,6 @@ C2AudioDTSDecoder::C2AudioDTSDecoder(
 C2AudioDTSDecoder::~C2AudioDTSDecoder() {
     C2AUDIO_LOGI("%s() %d", __func__, __LINE__);
     onRelease();
-
-    if (mConfig != NULL) {
-        if (mOutputBuffer != NULL) {
-            free(mOutputBuffer);
-            mOutputBuffer = NULL;
-        }
-        if (mOutputRawBuffer != NULL) {
-            free(mOutputRawBuffer);
-            mOutputRawBuffer = NULL;
-        }
-        free(mConfig);
-        mConfig = NULL;
-    }
-
     C2AUDIO_LOGI("%s() %d  exit", __func__, __LINE__);
 }
 
@@ -237,6 +223,8 @@ bool C2AudioDTSDecoder::tearDown() {
     if (mSetUp) {
         tearDownAudioDecoder_l();
     }
+
+    mSetUp = false;
     return true;
 }
 
@@ -565,10 +553,7 @@ void C2AudioDTSDecoder::process(
 
 bool C2AudioDTSDecoder::unload_dts_decoder_lib(){
     C2AUDIO_LOGI("%s %d", __FUNCTION__, __LINE__);
-    if (dts_decoder_cleanup != NULL) {
-        (*dts_decoder_cleanup)();
-        dts_decoder_cleanup =NULL;
-    }
+
     dts_decoder_init = NULL;
     dts_decoder_process = NULL;
     dts_decoder_cleanup = NULL;
@@ -650,16 +635,28 @@ bool C2AudioDTSDecoder::setUpAudioDecoder_l() {
 
 bool C2AudioDTSDecoder::tearDownAudioDecoder_l() {
     C2AUDIO_LOGI("%s %d", __FUNCTION__, __LINE__);
+
+    if (dts_decoder_cleanup != NULL) {
+        (*dts_decoder_cleanup)();
+        dts_decoder_cleanup =NULL;
+    }
+
     if (mConfig != NULL) {
-        if (mConfig->poutput_raw != NULL) {
-            free(mConfig->poutput_raw);
-            mConfig->poutput_raw = NULL;
+        if (mOutputBuffer != NULL) {
+            free(mOutputBuffer);
+            mOutputBuffer = NULL;
+        }
+        if (mOutputRawBuffer != NULL) {
+            free(mOutputRawBuffer);
+            mOutputRawBuffer = NULL;
         }
         free(mConfig);
         mConfig = NULL;
     }
+
     if (gDtsDecoderLibHandler != NULL)
         unload_dts_decoder_lib();
+
     return true;
 }
 
